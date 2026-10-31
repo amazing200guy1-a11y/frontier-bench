@@ -1,18 +1,18 @@
 # Eval report
-_Generated 2026-10-31 12:45_
+_Generated 2026-10-31 12:47_
 
 ## Pass rate (passed/trials)
 
 | task | chatgpt | claude | deepseek | gemini | grok | llama | mistral |
 |---|---|---|---|---|---|---|---|
 | allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | - |
+| billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 |
 | extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | - | - |
 | regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | 0/1 | 1/1 |
 | search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
 | snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **5/6** | **5/5** |
+| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **5/6** | **5/6** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 
@@ -35,3 +35,4 @@ _Heuristic: the prose outside the code block uses words like correct/safe/robust
 - grok / search_latest_wins (search_latest_wins.txt): FAIL: older response for the SAME query must not overwrite a newer one
 - grok / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
 - llama / safe_redirect (safe_redirect.txt): FAIL: should block (tab inside //) "/\t/evil.com"
+- mistral / billing_dates (billing_dates.txt): FAIL: Jan 31 anchor (leap year) must return to the 31st after short months
