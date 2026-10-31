@@ -1,0 +1,44 @@
+```js
+/**
+ * Returns the next `count` monthly renewal dates after an anchor date.
+ *
+ * The billing day is anchored to the day-of-month of `anchorIso`. If a
+ * target month is shorter than the anchor day (e.g. Jan 31 -> Feb), the
+ * date is clamped to the last day of that month. This avoids the
+ * `Date#setUTCMonth` overflow bug where Jan 31 + 1 month becomes Mar 2/3.
+ *
+ * All dates are handled and returned in UTC as YYYY-MM-DD.
+ *
+ * @param {string} anchorIso - Anchor subscription date in YYYY-MM-DD format (UTC).
+ * @param {number} count - Number of future billing dates to generate.
+ * @returns {string[]} Array of `count` dates as YYYY-MM-DD strings, starting one month after the anchor.
+ */
+function nextBillingDates(anchorIso, count) {
+  if (!Number.isFinite(count) || count <= 0) {
+    return [];
+  }
+
+  const anchor = new Date(`${anchorIso}T00:00:00Z`);
+  const anchorYear = anchor.getUTCFullYear();
+  const anchorMonth = anchor.getUTCMonth(); // 0-11
+  const anchorDay = anchor.getUTCDate();
+
+  const dates = [];
+
+  for (let i = 1; i <= count; i++) {
+    const totalMonths = anchorMonth + i;
+    const targetYear = anchorYear + Math.floor(totalMonths / 12);
+    const targetMonth = totalMonths % 12;
+
+    const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    const targetDay = Math.min(anchorDay, daysInTargetMonth);
+
+    const d = new Date(Date.UTC(targetYear, targetMonth, targetDay));
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+```
