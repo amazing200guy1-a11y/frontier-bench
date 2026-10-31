@@ -1,18 +1,18 @@
 # Eval report
-_Generated 2026-10-31 12:36_
+_Generated 2026-10-31 12:41_
 
 ## Pass rate (passed/trials)
 
 | task | chatgpt | claude | deepseek | gemini | grok | llama | mistral |
 |---|---|---|---|---|---|---|---|
-| allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | - | - |
+| allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
 | billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | - | - |
 | extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | - | - |
 | regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | 0/1 | 1/1 |
 | search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
 | snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **3/4** | **4/4** |
+| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **4/5** | **5/5** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 

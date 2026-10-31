@@ -1,0 +1,85 @@
+```js
+/**
+ * Splits an amount in minor units (e.g. kobo) proportionally to integer weights.
+ *
+ * Uses the largest-remainder (Hamilton) method to avoid money creation / loss:
+ * 1. Compute exact entitlement `totalMinor * w / sum`.
+ * 2. Take `floor` for each recipient.
+ * 3. Distribute the remaining `totalMinor - sum(floors)` units one-by-one to
+ *    recipients with the highest fractional remainder.
+ *
+ * This guarantees the returned integers sum to exactly `totalMinor`,
+ * is unbiased toward the last recipient, and is deterministic.
+ *
+ * @param {number} totalMinor - Total amount to split, must be an integer in minor units.
+ * @param {number[]} weights - Non-negative integer weights, one per recipient.
+ * @returns {number[]} Array of integer allocations that sums exactly to `totalMinor`.
+ * @throws {RangeError} If `weights` sums to zero.
+ */
+function allocate(totalMinor, weights) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (sum <= 0) {
+    throw new RangeError('weights must sum to a positive number');
+  }
+
+  // Use BigInt for exact integer arithmetic to avoid floating point bias
+  // on large kobo amounts. Falls back to Number if totalMinor is not integer.
+  if (Number.isInteger(totalMinor)) {
+    const sumBig = BigInt(sum);
+    const totalBig = BigInt(totalMinor);
+
+    const floors = new Array(weights.length);
+    const remainders = new Array(weights.length);
+    let sumFloors = 0n;
+
+    for (let i = 0; i < weights.length; i++) {
+      const num = totalBig * BigInt(weights[i]);
+      // positive modulo: 0 <= r < sum
+      let r = num % sumBig;
+      if (r < 0n) r += sumBig;
+      // floor division because sum > 0
+      const q = (num - r) / sumBig;
+
+      floors[i] = q;
+      remainders[i] = r;
+      sumFloors += q;
+    }
+
+    let toDistribute = Number(totalBig - sumFloors); // 0 <= toDistribute < weights.length
+
+    // Indices sorted by fractional part desc (remainder desc), tie -> earlier index
+    const order = weights.map((_, i) => i).sort((a, b) => {
+      if (remainders[a] !== remainders[b]) {
+        return remainders[b] > remainders[a] ? 1 : -1;
+      }
+      return a - b;
+    });
+
+    for (let k = 0; k < toDistribute; k++) {
+      floors[order[k]] += 1n;
+    }
+
+    return floors.map((v) => Number(v));
+  }
+
+  // Fallback for non-integer totalMinor (should not happen per contract)
+  const exact = weights.map((w) => (totalMinor * w) / sum);
+  const floors = exact.map((x) => Math.floor(x));
+  const fracs = exact.map((x, i) => x - floors[i]);
+
+  let toDistribute = Math.round(totalMinor - floors.reduce((a, b) => a + b, 0));
+
+  const order = weights.map((_, i) => i).sort((a, b) => {
+    if (fracs[a] !== fracs[b]) return fracs[b] - fracs[a];
+    return a - b;
+  });
+
+  for (let k = 0; k < toDistribute; k++) {
+    floors[order[k]] += 1;
+  }
+
+  return floors;
+}
+
+module.exports = { allocate };
+```
