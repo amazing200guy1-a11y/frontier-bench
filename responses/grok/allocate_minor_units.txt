@@ -1,0 +1,51 @@
+/**
+ * Allocates an integer total of minor currency units (e.g. kobo, cents)
+ * among recipients according to their fractional shares.
+ *
+ * The sum of the returned allocations is guaranteed to equal `totalUnits`
+ * exactly (no units are lost or invented). Any leftover units after
+ * flooring are distributed one-by-one to the recipients that have the
+ * largest fractional remainders. When remainders are equal, the original
+ * list order is used as a deterministic tie-breaker (earlier index wins).
+ *
+ * @param {number} totalUnits - Non-negative integer total to allocate.
+ * @param {number[]} shares   - Array of non-negative share weights.
+ * @returns {number[]} Array of integer allocations, same length as `shares`.
+ */
+function allocate(totalUnits, shares) {
+  if (shares.length === 0) {
+    return [];
+  }
+
+  const sumShares = shares.reduce((sum, s) => sum + s, 0);
+  if (sumShares === 0) {
+    return shares.map(() => 0);
+  }
+
+  const exact = shares.map((s) => (totalUnits * s) / sumShares);
+  const floors = exact.map(Math.floor);
+  let remaining = totalUnits - floors.reduce((sum, f) => sum + f, 0);
+
+  // Track original index for stable tie-breaking
+  const candidates = exact.map((value, index) => ({
+    index,
+    remainder: value - floors[index],
+  }));
+
+  // Largest remainder first; on a tie prefer the earlier original index
+  candidates.sort((a, b) => {
+    if (b.remainder !== a.remainder) {
+      return b.remainder - a.remainder;
+    }
+    return a.index - b.index;
+  });
+
+  const result = floors.slice();
+  for (let i = 0; i < remaining; i++) {
+    result[candidates[i].index] += 1;
+  }
+
+  return result;
+}
+
+module.exports = { allocate };

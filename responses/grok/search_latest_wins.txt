@@ -1,0 +1,32 @@
+/**
+ * Creates a search handler that ignores stale results and errors from superseded queries.
+ * Safe for search-as-you-type (every keystroke) and explicit Refresh.
+ *
+ * @param {(query: string) => Promise<unknown>} fetchResults - Fetches results for a query.
+ * @param {(results: unknown, query: string) => void} render - Renders results for the current query.
+ * @param {(err: unknown, query: string) => void} onError - Called only for errors of the latest query.
+ * @returns {(query: string) => Promise<void>} Async search function.
+ */
+function createSearch(fetchResults, render, onError) {
+  let latest = null;
+
+  return async function search(query) {
+    latest = query;
+
+    try {
+      const results = await fetchResults(query);
+      // Only render if this request is still the most recent one.
+      if (latest === query) {
+        render(results, query);
+      }
+    } catch (err) {
+      // Only surface the error if this request is still the most recent one.
+      // Prevents spurious toasts from older, superseded requests.
+      if (latest === query) {
+        onError(err, query);
+      }
+    }
+  };
+}
+
+module.exports = { createSearch };

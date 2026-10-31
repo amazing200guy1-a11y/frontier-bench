@@ -1,0 +1,53 @@
+```js
+'use strict';
+
+/**
+ * A record containing a Snowflake ID.
+ *
+ * Note: JSON numbers exceeding Number.MAX_SAFE_INTEGER may already
+ * have lost precision before this function receives them.
+ *
+ * @typedef {Record<string, unknown> & { id: number }} SnowflakeRecord
+ */
+
+/**
+ * Keeps the first record for each ID, preserving input order.
+ *
+ * @param {string} json - JSON string containing an array of records.
+ * @returns {SnowflakeRecord[]} Records with duplicate IDs removed.
+ * @throws {SyntaxError} If the input is not valid JSON.
+ * @throws {TypeError} If the parsed value is not an array or a record
+ *   does not contain a numeric ID.
+ */
+function dedupeById(json) {
+  const rows = JSON.parse(json);
+
+  if (!Array.isArray(rows)) {
+    throw new TypeError('Expected a JSON array');
+  }
+
+  const seen = new Set();
+  const result = [];
+
+  for (const row of rows) {
+    if (
+      row === null ||
+      typeof row !== 'object' ||
+      Array.isArray(row) ||
+      typeof row.id !== 'number' ||
+      !Number.isFinite(row.id)
+    ) {
+      throw new TypeError('Each record must have a finite numeric id');
+    }
+
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      result.push(row);
+    }
+  }
+
+  return result;
+}
+
+module.exports = { dedupeById };
+```

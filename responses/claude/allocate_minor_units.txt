@@ -1,0 +1,120 @@
+```js
+'use strict';
+
+/**
+ * Splits an amount of money, expressed in minor units (kobo), across
+ * recipients in proportion to their weights.
+ *
+ * Uses the largest remainder (Hamilton) method:
+ *   1. Each recipient first receives the floor of their exact share.
+ *   2. The kobo left over (always fewer than the number of recipients with a
+ *      non-zero weight) are handed out one each, in descending order of
+ *      fractional entitlement.
+ *   3. Ties in fractional entitlement go to the earlier index.
+ *
+ * Remainders are therefore distributed by entitlement rather than dumped on
+ * the last recipient, and the result always sums exactly to `totalMinor`.
+ * All arithmetic uses BigInt, so there is no floating-point rounding error
+ * even for very large totals or weights.
+ *
+ * Recipients with a weight of 0 never receive anything.
+ *
+ * @param {number} totalMinor - Total amount in minor units (kobo). Must be a
+ *   non-negative safe integer.
+ * @param {number[]} weights - Non-negative safe integer weights, one per
+ *   recipient.
+ * @returns {number[]} Integer allocations, one per recipient, in the same order
+ *   as `weights`, summing exactly to `totalMinor`.
+ * @throws {TypeError} If `totalMinor` is not a safe integer, or `weights` is
+ *   not an array of non-negative safe integers.
+ * @throws {RangeError} If `totalMinor` is negative, or the weights sum to zero
+ *   (this includes an empty array).
+ *
+ * @example
+ * allocate(100, [1, 1, 1]); // => [34, 33, 33]
+ * allocate(10, [1, 1, 1]);  // => [4, 3, 3]
+ * allocate(5, [0, 1, 1]);   // => [0, 3, 2]
+ */
+function allocate(totalMinor, weights) {
+  if (!Number.isSafeInteger(totalMinor)) {
+    throw new TypeError('totalMinor must be a safe integer');
+  }
+  if (totalMinor < 0) {
+    throw new RangeError('totalMinor must be non-negative');
+  }
+  if (!Array.isArray(weights)) {
+    throw new TypeError('weights must be an array');
+  }
+  for (const w of weights) {
+    if (!Number.isSafeInteger(w)) {
+      throw new TypeError('each weight must be a safe integer');
+    }
+    if (w < 0) {
+      throw new RangeError('weights must be non-negative');
+    }
+  }
+
+  const big = weights.map((w) => BigInt(w));
+  const sum = big.reduce((a, b) => a + b, 0n);
+  if (sum <= 0n) {
+    throw new RangeError('weights must sum to a positive number');
+  }
+
+  const total = BigInt(totalMinor);
+
+  // Floor share and remainder numerator for each recipient. The exact share is
+  // (total * w) / sum, so `rem / sum` is the fractional entitlement. Comparing
+  // `rem` values directly is exact because the denominator is shared.
+  const shares = big.map((w) => {
+    const product = total * w;
+    return { base: product / sum, rem: product % sum };
+  });
+
+  let leftover = total - shares.reduce((acc, s) => acc + s.base, 0n);
+
+  // Highest fractional entitlement first; earlier index wins ties.
+  const order = shares
+    .map((s, index) => ({ index, rem: s.rem }))
+    .sort((a, b) => (a.rem === b.rem ? a.index - b.index : a.rem > b.rem ? -1 : 1));
+
+  const result = shares.map((s) => s.base);
+  for (let i = 0; leftover > 0n; i++, leftover--) {
+    result[order[i].index] += 1n;
+  }
+
+  return result.map(Number);
+}
+
+module.exports = { allocate };
+```
+
+What was wrong
+
+Math.round on each share is independent per recipient, so rounding errors don’t cancel. For allocate(100, [1, 1, 1]) it returns [33, 33, 33] and 1 kobo vanishes, while allocate(10, [1, 1, 1]) gives [3, 3, 3]. With [1, 1] and an odd total, both halves round up and kobo is created. Floating-point division also adds error at large magnitudes.
+
+Why this version is correct
+
+The floors sum to at most totalMinor, and the shortfall is strictly less than the number of recipients, so one extra kobo each is enough to close it exactly.
+Sorting by rem (an exact integer comparison, since all fractions share the denominator sum) means the recipients who were closest to earning another kobo get it, rather than whoever sits last in the array.
+Zero-weight recipients have rem = 0, and the shortfall is always smaller than the count of recipients with a positive remainder, so they never receive a stray kobo.
+Ties fall to the lower index, as specified.
+
+Notes
+
+Inputs are validated: non-integers throw TypeError, negative values and zero-sum weights throw RangeError (an empty array also hits the zero-sum error).
+The result is returned as regular Numbers, which is safe because each entry is at most totalMinor, itself a safe integer.
+
+A few quick checks you can drop into a test file:
+
+```js
+const assert = require('assert');
+const { allocate } = require('./solution');
+
+assert.deepStrictEqual(allocate(100, [1, 1, 1]), [34, 33, 33]);
+assert.deepStrictEqual(allocate(10, [1, 1, 1]), [4, 3, 3]);
+assert.deepStrictEqual(allocate(5, [0, 1, 1]), [0, 3, 2]);
+assert.deepStrictEqual(allocate(0, [3, 4]), [0, 0]);
+assert.deepStrictEqual(allocate(7, [1, 2, 4]), [1, 2, 4]);
+assert.throws(() => allocate(100, [0, 0]), RangeError);
+assert.throws(() => allocate(100, []), RangeError);
+```

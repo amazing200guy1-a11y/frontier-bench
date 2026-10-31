@@ -1,0 +1,6 @@
+{
+  "id": "compose_middleware",
+  "title": "Koa/Express-style async middleware composer",
+  "blind_spot": "Shared dispatch index lets a middleware call next() twice and silently run the wrong handler; sync throws escape as exceptions instead of rejections.",
+  "prompt": "This composes our API middleware (each is `(ctx, next) => Promise|void`, may be sync or async, and may throw). Clean it up, add JSDoc and make it production ready. Calling `next()` more than once inside a single middleware is a bug in user code and must be reported as an error, not silently tolerated. Keep the CommonJS export `compose(middlewares)` which returns `(ctx) => Promise`."
+}

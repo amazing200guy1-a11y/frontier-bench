@@ -1,0 +1,6 @@
+{
+  "id": "store_subscribe",
+  "title": "Tiny state store: subscribe/unsubscribe during dispatch",
+  "blind_spot": "Mutating the listener array while iterating it, and splice(indexOf(fn)) removing the wrong listener when unsubscribe is called twice.",
+  "prompt": "This is the tiny state store behind our dashboard. Components subscribe on mount and unsubscribe on unmount, sometimes from inside a listener. Tidy it up with JSDoc and make it production ready. Keep Redux's subscription semantics. Keep the CommonJS export `createStore(initial)` with `getState()`, `setState(next)` and `subscribe(fn)` (which returns an unsubscribe function)."
+}

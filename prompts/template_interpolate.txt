@@ -1,0 +1,15 @@
+We have a template string replacer render_template(template, context) in our build system that replaces placeholders like {{path}} or {{tag}} with values from a dictionary. Clean this up, add type hints and docstrings, and ensure it safely handles arbitrary replacement strings like file paths, URLs, and code snippets. Return the substituted string.
+
+Current code (`solution.py`):
+```py
+import re
+
+def render_template(template: str, context: dict[str, str]) -> str:
+    for key, value in context.items():
+        pattern = r"\{\{\s*" + re.escape(key) + r"\s*\}\}"
+        template = re.sub(pattern, str(value), template)
+    return template
+
+```
+
+Return the complete final contents of solution.py in a single ```py code block.

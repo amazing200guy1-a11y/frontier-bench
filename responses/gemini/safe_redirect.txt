@@ -1,0 +1,32 @@
+```js
+const ALLOWED_HOSTNAME = 'app.example.com';
+
+/**
+ * Determines whether a redirect URL is safe to use.
+ * Allows same-site relative paths (excluding protocol-relative URLs) 
+ * and absolute 'https' URLs specifically for 'app.example.com'.
+ *
+ * @param {string} url - The URL string to validate.
+ * @returns {boolean} True if the URL is safe, false otherwise.
+ */
+function isSafeRedirect(url) {
+  if (typeof url !== 'string') {
+    return false;
+  }
+
+  // 1. Allow same-site relative paths, but block protocol-relative (//) or malformed paths
+  if (url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\')) {
+    return true;
+  }
+
+  // 2. Validate absolute URLs safely using the URL API
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'https:' && parsedUrl.hostname === ALLOWED_HOSTNAME;
+  } catch (error) {
+    return false;
+  }
+}
+
+module.exports = { isSafeRedirect };
+```

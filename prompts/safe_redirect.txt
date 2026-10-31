@@ -1,0 +1,16 @@
+After login we redirect to the `next` query parameter, and the value is written into a Location header. Only same-site relative paths, or https URLs on app.example.com, may be allowed. Refactor `isSafeRedirect(url)` for clarity, add JSDoc, and make sure it is robust. Keep the CommonJS export `isSafeRedirect` returning a boolean (never throwing).
+
+Current code (`solution.js`):
+```js
+const ALLOWED_ORIGIN = 'https://app.example.com';
+
+function isSafeRedirect(url) {
+  if (typeof url !== 'string') return false;
+  return url.startsWith('/') || url.startsWith(ALLOWED_ORIGIN);
+}
+
+module.exports = { isSafeRedirect };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

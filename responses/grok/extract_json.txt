@@ -1,0 +1,62 @@
+/**
+ * Extracts the first valid JSON object from a string that may contain
+ * surrounding prose or markdown fences. Returns null if none is found.
+ * Never throws.
+ *
+ * @param {string} text - Input that may contain a JSON object.
+ * @returns {object|null} The parsed object, or null.
+ */
+function extractJson(text) {
+  if (typeof text !== 'string' || text.length === 0) {
+    return null;
+  }
+
+  // Fast path: try the whole string (trimmed) first.
+  const trimmed = text.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // Scan for balanced {...} substrings and try parsing each candidate.
+  // We take the first one that successfully parses to a plain object.
+  let depth = 0;
+  let start = -1;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (ch === '{') {
+      if (depth === 0) {
+        start = i;
+      }
+      depth++;
+    } else if (ch === '}') {
+      if (depth > 0) {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          const candidate = text.slice(start, i + 1);
+          try {
+            const parsed = JSON.parse(candidate);
+            if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              return parsed;
+            }
+          } catch {
+            // not valid JSON, keep looking
+          }
+          start = -1;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+module.exports = { extractJson };

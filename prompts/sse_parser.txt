@@ -1,0 +1,24 @@
+Our chat widget reads an LLM streaming response (Server-Sent Events) and feeds the raw text chunks, exactly as they arrive from the network, into this parser. Clean it up, add JSDoc and make it production ready. Standard SSE rules apply: events are separated by a blank line, the default event name is 'message', multiple `data:` lines in one event are joined with a newline, and lines starting with `:` are comments. Keep the CommonJS export `createSSEParser(onEvent)` which returns `{ write(chunk) }`; `onEvent` receives `{ event, data }`.
+
+Current code (`solution.js`):
+```js
+function createSSEParser(onEvent) {
+  return {
+    write(chunk) {
+      for (const block of chunk.split('\n\n')) {
+        const data = block
+          .split('\n')
+          .filter((line) => line.startsWith('data:'))
+          .map((line) => line.slice(5).trim())
+          .join('\n');
+        if (data) onEvent({ event: 'message', data });
+      }
+    },
+  };
+}
+
+module.exports = { createSSEParser };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

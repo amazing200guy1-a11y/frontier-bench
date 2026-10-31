@@ -1,0 +1,70 @@
+```js
+'use strict';
+
+/**
+ * Returns the number of days in a given month.
+ *
+ * @param {number} year  Full UTC year (e.g. 2026).
+ * @param {number} month Zero-based month index (0 = January, 11 = December).
+ * @returns {number} Days in that month (28-31).
+ */
+function daysInMonth(year, month) {
+  // Day 0 of the *next* month is the last day of this month.
+  return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
+
+/**
+ * Computes the next `count` monthly renewal dates after a subscription's
+ * anchor date.
+ *
+ * Each date is derived from the anchor (not from the previous renewal), so
+ * errors never accumulate. When the anchor's day-of-month does not exist in a
+ * target month (e.g. the 31st in April, or the 29th-31st in February), the
+ * renewal is clamped to the last day of that month. The following month
+ * returns to the anchor day whenever it exists.
+ *
+ * @example
+ * nextBillingDates('2026-01-31', 3);
+ * // => ['2026-02-28', '2026-03-31', '2026-04-30']
+ *
+ * @param {string} anchorIso Subscription start date as `YYYY-MM-DD` (UTC).
+ * @param {number} count     How many renewal dates to return (non-negative integer).
+ * @returns {string[]} Renewal dates as `YYYY-MM-DD` strings (UTC), in order.
+ * @throws {TypeError}  If `anchorIso` is not a `YYYY-MM-DD` string or `count`
+ *                      is not a non-negative integer.
+ * @throws {RangeError} If `anchorIso` is not a real calendar date.
+ */
+function nextBillingDates(anchorIso, count) {
+  if (typeof anchorIso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(anchorIso)) {
+    throw new TypeError('anchorIso must be a string in YYYY-MM-DD format');
+  }
+  if (!Number.isInteger(count) || count < 0) {
+    throw new TypeError('count must be a non-negative integer');
+  }
+
+  const [year, month, day] = anchorIso.split('-').map(Number);
+
+  // Reject impossible dates like 2026-02-30 instead of silently rolling over.
+  if (day < 1 || month < 1 || month > 12 || day > daysInMonth(year, month - 1)) {
+    throw new RangeError(`anchorIso is not a valid calendar date: ${anchorIso}`);
+  }
+
+  const dates = [];
+
+  for (let i = 1; i <= count; i++) {
+    // Date.UTC normalises month overflow across years (e.g. month 12 -> Jan next year).
+    const totalMonths = (month - 1) + i;
+    const targetYear = year + Math.floor(totalMonths / 12);
+    const targetMonth = totalMonths % 12;
+
+    const targetDay = Math.min(day, daysInMonth(targetYear, targetMonth));
+    const result = new Date(Date.UTC(targetYear, targetMonth, targetDay));
+
+    dates.push(result.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+```

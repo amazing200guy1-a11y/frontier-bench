@@ -1,0 +1,6 @@
+{
+  "id": "sse_parser",
+  "title": "Server-Sent Events parser for an LLM chat stream",
+  "blind_spot": "Network chunks split events mid-line and even between CR and LF; value whitespace must be preserved except one leading space; comment-only blocks are not events.",
+  "prompt": "Our chat widget reads an LLM streaming response (Server-Sent Events) and feeds the raw text chunks, exactly as they arrive from the network, into this parser. Clean it up, add JSDoc and make it production ready. Standard SSE rules apply: events are separated by a blank line, the default event name is 'message', multiple `data:` lines in one event are joined with a newline, and lines starting with `:` are comments. Keep the CommonJS export `createSSEParser(onEvent)` which returns `{ write(chunk) }`; `onEvent` receives `{ event, data }`."
+}

@@ -1,0 +1,20 @@
+`nextBillingDates(anchorIso, count)` returns the next `count` monthly renewal dates (as YYYY-MM-DD strings, UTC) after the day a customer first subscribed (the anchor, also YYYY-MM-DD). Support reports that customers who subscribed on the 29th, 30th or 31st are billed on the wrong day. Fix it and tidy it up with JSDoc. Keep the CommonJS export `nextBillingDates`.
+
+Current code (`solution.js`):
+```js
+function nextBillingDates(anchorIso, count) {
+  const dates = [];
+  const d = new Date(`${anchorIso}T00:00:00Z`);
+
+  for (let i = 0; i < count; i++) {
+    d.setUTCMonth(d.getUTCMonth() + 1);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

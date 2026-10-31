@@ -1,0 +1,18 @@
+We index user-submitted text and count word frequencies. wordFreq(text) returns a plain object mapping each whitespace-separated word to its occurrence count. Clean this up, add JSDoc, and ensure it handles all valid inputs safely. Keep the CommonJS export wordFreq.
+
+Current code (`solution.js`):
+```js
+function wordFreq(text) {
+  const counts = {};
+  const words = typeof text === 'string' ? text.match(/\S+/g) || [] : [];
+  for (const w of words) {
+    counts[w] = (counts[w] || 0) + 1;
+  }
+  return counts;
+}
+
+module.exports = { wordFreq };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

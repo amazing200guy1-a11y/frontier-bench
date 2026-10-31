@@ -1,0 +1,6 @@
+{
+  "id": "allocate_minor_units",
+  "title": "Revenue split in kobo that always adds up",
+  "blind_spot": "Largest-remainder allocation with a deterministic tie-break; models dump the leftover on the first/last recipient or round each share independently.",
+  "prompt": "`allocate(totalMinor, weights)` splits an amount in kobo (an integer) across recipients proportionally to non-negative integer weights for revenue sharing. Support reports that payouts do not add up to totalMinor (money leaks or is created), and naive rounding hacks that dump remainder kobo on the last recipient create unfair partner bias. Fix it and tidy it up with JSDoc. Contract: returns an array of integers that sums exactly to `totalMinor`; unallocated remainder kobo must be distributed fairly based on fractional entitlement without biasing the last recipient, with ties resolved in favor of earlier indices; throws a RangeError if the weights sum to zero. Keep the CommonJS export `allocate`."
+}

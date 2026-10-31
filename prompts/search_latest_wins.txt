@@ -1,0 +1,23 @@
+Our search-as-you-type box calls this on every keystroke, and the product also has a Refresh button that re-runs the current query. Tidy this up with JSDoc and make sure users never see outdated results or spurious error toasts. Keep the CommonJS export `createSearch(fetchResults, render, onError)` which returns an async `search(query)`.
+
+Current code (`solution.js`):
+```js
+function createSearch(fetchResults, render, onError) {
+  let latest = null;
+
+  return async function search(query) {
+    latest = query;
+    try {
+      const results = await fetchResults(query);
+      if (latest === query) render(results, query);
+    } catch (err) {
+      onError(err, query);
+    }
+  };
+}
+
+module.exports = { createSearch };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

@@ -1,0 +1,59 @@
+```js
+/**
+ * Extracts and parses the first valid JSON object or array found in the given text.
+ * Safely handles markdown code fences, prose wrapping, and malformed strings without throwing.
+ * 
+ * @param {string} text - The input text containing potential JSON.
+ * @returns {Object|Array|null} The parsed JSON object/array, or null if none is found.
+ */
+function extractJson(text) {
+  if (typeof text !== 'string' || !text.trim()) {
+    return null;
+  }
+
+  // 1. Check inside markdown code fences first
+  const fenceRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
+  let match;
+  while ((match = fenceRegex.exec(text)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (parsed !== null && typeof parsed === 'object') {
+        return parsed;
+      }
+    } catch {
+      // Ignore invalid JSON inside fences and continue searching
+    }
+  }
+
+  // 2. Search for potential JSON blocks ({...} or [...]) using non-greedy matching
+  const candidateRegex = /\{[\s\S]*?\}|\[[\s\S]*?\]/g;
+  const candidates = text.match(candidateRegex);
+
+  if (candidates) {
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate);
+        if (parsed !== null && typeof parsed === 'object') {
+          return parsed;
+        }
+      } catch {
+        // Ignore parse failures and try the next candidate
+      }
+    }
+  }
+
+  // 3. Fallback: Try parsing the entire trimmed text directly
+  try {
+    const parsed = JSON.parse(text.trim());
+    if (parsed !== null && typeof parsed === 'object') {
+      return parsed;
+    }
+  } catch {
+    // Ignore
+  }
+
+  return null;
+}
+
+module.exports = { extractJson };
+```

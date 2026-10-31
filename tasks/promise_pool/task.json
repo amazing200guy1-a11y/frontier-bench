@@ -1,0 +1,6 @@
+{
+  "id": "promise_pool",
+  "title": "Concurrency-limited task runner for a rate-limited API",
+  "blind_spot": "Batching with Promise.all respects the limit but wastes capacity (a slow task stalls its whole batch); a correct pool must also stop starting new work after the first failure.",
+  "prompt": "We run hundreds of API calls (functions that return promises) with a concurrency limit because the upstream is rate limited. Clean this up, add JSDoc and make it faster. Results must come back in input order, and after the first failure no new tasks may be started and the returned promise must reject with that error. Keep the CommonJS export `runPool(tasks, limit)`."
+}

@@ -1,0 +1,6 @@
+{
+  "id": "idempotent_handler",
+  "title": "Idempotency wrapper for a payments webhook",
+  "prompt": "This wrapper makes our payments webhook handler idempotent by key. It now runs under concurrent traffic (retries arrive within milliseconds of each other) and processFn can fail. Make it production ready and add JSDoc. Keep the CommonJS export `createIdempotentHandler(processFn)` returning `handle(key, payload)`.",
+  "blind_spot": "Check-then-act across an await lets concurrent retries all run processFn; caching only successful results is not enough, and caching the promise must not poison the key on failure."
+}

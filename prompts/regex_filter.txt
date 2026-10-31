@@ -1,0 +1,19 @@
+We need an in-memory keyword filter for user comments. createFilter(words) takes an array of words to filter and returns { isFlagged(text), redact(text) }. isFlagged(text) returns true if any forbidden word is present as a whole word (case-insensitive). redact(text) replaces every forbidden word with asterisks of matching length (e.g. 'bad' -> '***'). Tidy this up with JSDoc and make it production ready. Keep the CommonJS export createFilter.
+
+Current code (`solution.js`):
+```js
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function createFilter(words) {
+  const re = new RegExp(`\\b(?:${words.map(esc).join('|')})\\b`, 'gi');
+  return {
+    isFlagged: (text) => re.test(text),
+    redact: (text) => text.replace(re, (m) => '*'.repeat(m.length)),
+  };
+}
+
+module.exports = { createFilter };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

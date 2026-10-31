@@ -1,0 +1,19 @@
+This wrapper makes our payments webhook handler idempotent by key. It now runs under concurrent traffic (retries arrive within milliseconds of each other) and processFn can fail. Make it production ready and add JSDoc. Keep the CommonJS export `createIdempotentHandler(processFn)` returning `handle(key, payload)`.
+
+Current code (`solution.js`):
+```js
+function createIdempotentHandler(processFn) {
+  const done = new Map();
+  return async function handle(key, payload) {
+    if (done.has(key)) return done.get(key);
+    const result = await processFn(payload);
+    done.set(key, result);
+    return result;
+  };
+}
+
+module.exports = { createIdempotentHandler };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

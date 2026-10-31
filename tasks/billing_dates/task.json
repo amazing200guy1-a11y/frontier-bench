@@ -1,0 +1,6 @@
+{
+  "id": "billing_dates",
+  "title": "Monthly renewal dates for subscriptions anchored on the 29th-31st",
+  "blind_spot": "Month-end clamping must be computed from the ORIGINAL anchor day, not from the previous renewal date (iterative clamping drifts: Jan 31 -> Feb 28 -> Mar 28).",
+  "prompt": "`nextBillingDates(anchorIso, count)` returns the next `count` monthly renewal dates (as YYYY-MM-DD strings, UTC) after the day a customer first subscribed (the anchor, also YYYY-MM-DD). Support reports that customers who subscribed on the 29th, 30th or 31st are billed on the wrong day. Fix it and tidy it up with JSDoc. Keep the CommonJS export `nextBillingDates`."
+}

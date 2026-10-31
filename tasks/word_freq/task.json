@@ -1,0 +1,6 @@
+{
+  "id": "word_freq",
+  "title": "Word frequency counter: prototype safety",
+  "blind_spot": "Using plain object dictionary counts[w] = (counts[w] || 0) + 1 corrupts on prototype-named words like 'toString' or '__proto__'.",
+  "prompt": "We index user-submitted text and count word frequencies. wordFreq(text) returns a plain object mapping each whitespace-separated word to its occurrence count. Clean this up, add JSDoc, and ensure it handles all valid inputs safely. Keep the CommonJS export wordFreq."
+}

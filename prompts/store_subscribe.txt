@@ -1,0 +1,28 @@
+This is the tiny state store behind our dashboard. Components subscribe on mount and unsubscribe on unmount, sometimes from inside a listener. Tidy it up with JSDoc and make it production ready. Keep Redux's subscription semantics. Keep the CommonJS export `createStore(initial)` with `getState()`, `setState(next)` and `subscribe(fn)` (which returns an unsubscribe function).
+
+Current code (`solution.js`):
+```js
+function createStore(initial) {
+  let state = initial;
+  const listeners = [];
+
+  return {
+    getState: () => state,
+    setState(next) {
+      state = next;
+      for (let i = 0; i < listeners.length; i++) listeners[i](state);
+    },
+    subscribe(fn) {
+      listeners.push(fn);
+      return () => {
+        listeners.splice(listeners.indexOf(fn), 1);
+      };
+    },
+  };
+}
+
+module.exports = { createStore };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

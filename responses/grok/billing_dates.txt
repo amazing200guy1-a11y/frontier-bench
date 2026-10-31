@@ -1,0 +1,32 @@
+/**
+ * Returns the next `count` monthly renewal dates (YYYY-MM-DD, UTC) after the
+ * subscription anchor date.  The original day-of-month is preserved whenever
+ * the target month has enough days; otherwise the last day of that month is
+ * used (so a 31st-day subscription never drifts after February).
+ *
+ * @param {string} anchorIso  Subscription start date as YYYY-MM-DD
+ * @param {number} count      How many future billing dates to produce
+ * @returns {string[]}        Array of YYYY-MM-DD strings
+ */
+function nextBillingDates(anchorIso, count) {
+  const dates = [];
+  const anchor = new Date(`${anchorIso}T00:00:00Z`);
+  const day = anchor.getUTCDate();
+  let year = anchor.getUTCFullYear();
+  let month = anchor.getUTCMonth(); // 0-based
+
+  for (let i = 0; i < count; i++) {
+    month += 1;
+    if (month > 11) {
+      month = 0;
+      year += 1;
+    }
+    // Clamp to the last day of the target month when necessary
+    const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const clampedDay = Math.min(day, lastDayOfMonth);
+    dates.push(new Date(Date.UTC(year, month, clampedDay)).toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+module.exports = { nextBillingDates };

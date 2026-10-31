@@ -1,0 +1,20 @@
+This composes our API middleware (each is `(ctx, next) => Promise|void`, may be sync or async, and may throw). Clean it up, add JSDoc and make it production ready. Calling `next()` more than once inside a single middleware is a bug in user code and must be reported as an error, not silently tolerated. Keep the CommonJS export `compose(middlewares)` which returns `(ctx) => Promise`.
+
+Current code (`solution.js`):
+```js
+function compose(middlewares) {
+  return function run(ctx) {
+    let i = 0;
+    function next() {
+      const fn = middlewares[i++];
+      return fn ? Promise.resolve(fn(ctx, next)) : Promise.resolve();
+    }
+    return next();
+  };
+}
+
+module.exports = { compose };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

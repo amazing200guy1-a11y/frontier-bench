@@ -1,0 +1,26 @@
+/**
+ * Deduplicates a batch of event records by their `id`, keeping the first occurrence of each.
+ *
+ * Accepts a JSON string representing an array of records (each with a 64-bit integer `id`
+ * and a `payload`). Returns a new array containing only the first record for every unique `id`.
+ *
+ * @param {string} jsonString - JSON string of an array of records, e.g.
+ *   `[{"id":1758492367891234816,"payload":{...}}, ...]`
+ * @returns {Array<{id: number|string, payload: unknown}>} Deduplicated records in original order
+ */
+function dedupeRecords(jsonString) {
+  const records = JSON.parse(jsonString);
+  const seen = new Set();
+  const result = [];
+
+  for (const record of records) {
+    if (!seen.has(record.id)) {
+      seen.add(record.id);
+      result.push(record);
+    }
+  }
+
+  return result;
+}
+
+module.exports = { dedupeById: dedupeRecords, dedupeRecords };

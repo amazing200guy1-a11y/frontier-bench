@@ -1,0 +1,6 @@
+{
+  "id": "regex_filter",
+  "title": "Word filter: isFlagged and redact with RegExp",
+  "blind_spot": "Using RegExp with the /g flag for isFlagged introduces statefulness via lastIndex: repeated calls on the same text oscillate between true and false.",
+  "prompt": "We need an in-memory keyword filter for user comments. createFilter(words) takes an array of words to filter and returns { isFlagged(text), redact(text) }. isFlagged(text) returns true if any forbidden word is present as a whole word (case-insensitive). redact(text) replaces every forbidden word with asterisks of matching length (e.g. 'bad' -> '***'). Tidy this up with JSDoc and make it production ready. Keep the CommonJS export createFilter."
+}

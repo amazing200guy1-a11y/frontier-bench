@@ -1,0 +1,6 @@
+{
+  "id": "safe_redirect",
+  "title": "Open-redirect guard for the post-login ?next= parameter",
+  "blind_spot": "Prefix checks (startsWith('/')) accept protocol-relative '//evil.com', backslash and tab tricks, userinfo '@' hosts and lookalike domains; CR/LF reaches the Location header.",
+  "prompt": "After login we redirect to the `next` query parameter, and the value is written into a Location header. Only same-site relative paths, or https URLs on app.example.com, may be allowed. Refactor `isSafeRedirect(url)` for clarity, add JSDoc, and make sure it is robust. Keep the CommonJS export `isSafeRedirect` returning a boolean (never throwing)."
+}

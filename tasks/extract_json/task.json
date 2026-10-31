@@ -1,0 +1,6 @@
+{
+  "id": "extract_json",
+  "title": "Pull the first JSON object out of an LLM response",
+  "blind_spot": "Greedy regex /{[\\s\\S]*}/ breaks on trailing braces; naive brace counting breaks on braces inside strings and on a malformed first candidate.",
+  "prompt": "We ask the LLM for JSON but it often wraps the object in prose or markdown fences. `extractJson(text)` should return the first valid JSON object found in the text, or null if there is none. Clean this up and add JSDoc. It runs on every model response in our agent loop, so it must never throw. Keep the CommonJS export `extractJson`."
+}

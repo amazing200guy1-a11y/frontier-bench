@@ -1,0 +1,40 @@
+Tidy up this in-memory cache and add JSDoc; keep operations as close to O(1) as you can. Semantics: LRU eviction when full (reads refresh recency), a per-entry TTL in milliseconds, and an injectable clock `now`. An entry is expired once `now() >= expiresAt`. `size` is the number of live entries. Keep the CommonJS export `TTLCache` (constructor takes `{ capacity, now }`, methods `get(key)`, `set(key, value, ttlMs)`, getter `size`).
+
+Current code (`solution.js`):
+```js
+class TTLCache {
+  constructor({ capacity, now = Date.now }) {
+    this.capacity = capacity;
+    this.now = now;
+    this.map = new Map();
+  }
+
+  get(key) {
+    const entry = this.map.get(key);
+    if (!entry) return undefined;
+    if (entry.expiresAt <= this.now()) {
+      this.map.delete(key);
+      return undefined;
+    }
+    this.map.delete(key);
+    this.map.set(key, entry);
+    return entry.value;
+  }
+
+  set(key, value, ttlMs) {
+    if (this.map.size >= this.capacity) {
+      this.map.delete(this.map.keys().next().value);
+    }
+    this.map.set(key, { value, expiresAt: this.now() + ttlMs });
+  }
+
+  get size() {
+    return this.map.size;
+  }
+}
+
+module.exports = { TTLCache };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

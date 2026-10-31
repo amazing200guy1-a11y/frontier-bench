@@ -1,0 +1,14 @@
+We ask the LLM for JSON but it often wraps the object in prose or markdown fences. `extractJson(text)` should return the first valid JSON object found in the text, or null if there is none. Clean this up and add JSDoc. It runs on every model response in our agent loop, so it must never throw. Keep the CommonJS export `extractJson`.
+
+Current code (`solution.js`):
+```js
+function extractJson(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  return match ? JSON.parse(match[0]) : null;
+}
+
+module.exports = { extractJson };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

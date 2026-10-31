@@ -1,0 +1,14 @@
+This function dedupes records coming from our API. IDs are 64-bit Snowflake IDs sent as plain JSON numbers, and we process millions of rows. Refactor it to modern ES2023 style and add JSDoc types. Keep the CommonJS export `dedupeById(json)` returning an array of the first row seen for each id. Make sure the dedupe is correct for all valid IDs.
+
+Current code (`solution.js`):
+```js
+const dedupeById = (json) => {
+  const seen = new Set();
+  return JSON.parse(json).filter((row) => !seen.has(row.id) && seen.add(row.id));
+};
+
+module.exports = { dedupeById };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

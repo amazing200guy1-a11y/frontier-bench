@@ -1,0 +1,29 @@
+```js
+/**
+ * Deduplicates an array of API records by their 64-bit Snowflake ID.
+ * Retains the first occurrence of each unique ID.
+ * 
+ * @param {string} json - JSON string representing an array of record objects.
+ * @returns {Object[]} An array of deduplicated record objects.
+ */
+function dedupeById(json) {
+  // Preprocess the JSON string to quote 64-bit Snowflake ID numbers,
+  // preventing IEEE 754 precision loss caused by standard JSON.parse().
+  const safeJson = json.replace(/"id"\s*:\s*(\d+)/g, '"id":"$1"');
+  const rows = JSON.parse(safeJson);
+  
+  const seen = new Set();
+  const out = [];
+  
+  for (const row of rows) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      out.push(row);
+    }
+  }
+  
+  return out;
+}
+
+module.exports = { dedupeById };
+```

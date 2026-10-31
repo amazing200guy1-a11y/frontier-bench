@@ -1,0 +1,18 @@
+We run hundreds of API calls (functions that return promises) with a concurrency limit because the upstream is rate limited. Clean this up, add JSDoc and make it faster. Results must come back in input order, and after the first failure no new tasks may be started and the returned promise must reject with that error. Keep the CommonJS export `runPool(tasks, limit)`.
+
+Current code (`solution.js`):
+```js
+async function runPool(tasks, limit) {
+  const results = [];
+  for (let i = 0; i < tasks.length; i += limit) {
+    const batch = tasks.slice(i, i + limit).map((task) => task());
+    results.push(...(await Promise.all(batch)));
+  }
+  return results;
+}
+
+module.exports = { runPool };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

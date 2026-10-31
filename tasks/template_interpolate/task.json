@@ -1,0 +1,6 @@
+{
+  "id": "template_interpolate",
+  "title": "Template string interpolation with literal values",
+  "blind_spot": "Using re.sub() directly with string replacement causes backslashes in paths (e.g. C:\\users\\new) or regex backreferences (\\1, \\g<0>) to crash or corrupt output. Replacement must be treated literally via a callable.",
+  "prompt": "We have a template string replacer render_template(template, context) in our build system that replaces placeholders like {{path}} or {{tag}} with values from a dictionary. Clean this up, add type hints and docstrings, and ensure it safely handles arbitrary replacement strings like file paths, URLs, and code snippets. Return the substituted string."
+}

@@ -1,0 +1,6 @@
+{
+  "id": "deep_clone",
+  "title": "Deep clone a plugin config preserving undefined, Date and RegExp",
+  "blind_spot": "JSON.parse(JSON.stringify(obj)) silently drops undefined properties, converts Date to strings, and converts RegExp to {}. Models must recognise the failures listed in the prompt and avoid all three, plus avoid shared references.",
+  "prompt": "Our plugin system passes configuration objects between isolated contexts. cloneConfig(obj) must return a deep copy with no shared references. It must preserve: undefined property values, Date instances (as Date objects, not strings), RegExp instances, and nested objects. It must never throw on valid input. Keep the CommonJS export cloneConfig."
+}

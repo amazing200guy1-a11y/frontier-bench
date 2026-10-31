@@ -1,0 +1,6 @@
+{
+  "id": "ttl_cache",
+  "title": "LRU cache with per-entry TTL",
+  "blind_spot": "Updating an existing key at capacity evicts a different entry, and expired entries keep occupying slots so live entries get evicted instead.",
+  "prompt": "Tidy up this in-memory cache and add JSDoc; keep operations as close to O(1) as you can. Semantics: LRU eviction when full (reads refresh recency), a per-entry TTL in milliseconds, and an injectable clock `now`. An entry is expired once `now() >= expiresAt`. `size` is the number of live entries. Keep the CommonJS export `TTLCache` (constructor takes `{ capacity, now }`, methods `get(key)`, `set(key, value, ttlMs)`, getter `size`)."
+}

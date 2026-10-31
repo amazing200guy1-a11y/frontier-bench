@@ -1,0 +1,6 @@
+{
+  "id": "snowflake_dedupe",
+  "title": "Dedupe API records keyed by 64-bit Snowflake IDs",
+  "prompt": "This function dedupes records coming from our API. IDs are 64-bit Snowflake IDs sent as plain JSON numbers, and we process millions of rows. Refactor it to modern ES2023 style and add JSDoc types. Keep the CommonJS export `dedupeById(json)` returning an array of the first row seen for each id. Make sure the dedupe is correct for all valid IDs.",
+  "blind_spot": "JSON.parse turns 64-bit integers into doubles above 2^53, so adjacent Snowflake IDs collapse into one and dedupe silently drops distinct rows."
+}

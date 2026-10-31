@@ -1,0 +1,13 @@
+Our plugin system passes configuration objects between isolated contexts. cloneConfig(obj) must return a deep copy with no shared references. It must preserve: undefined property values, Date instances (as Date objects, not strings), RegExp instances, and nested objects. It must never throw on valid input. Keep the CommonJS export cloneConfig.
+
+Current code (`solution.js`):
+```js
+function cloneConfig(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+module.exports = { cloneConfig };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.

@@ -1,0 +1,15 @@
+`allocate(totalMinor, weights)` splits an amount in kobo (an integer) across recipients proportionally to non-negative integer weights for revenue sharing. Support reports that payouts do not add up to totalMinor (money leaks or is created), and naive rounding hacks that dump remainder kobo on the last recipient create unfair partner bias. Fix it and tidy it up with JSDoc. Contract: returns an array of integers that sums exactly to `totalMinor`; unallocated remainder kobo must be distributed fairly based on fractional entitlement without biasing the last recipient, with ties resolved in favor of earlier indices; throws a RangeError if the weights sum to zero. Keep the CommonJS export `allocate`.
+
+Current code (`solution.js`):
+```js
+function allocate(totalMinor, weights) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (sum <= 0) throw new RangeError('weights must sum to a positive number');
+  return weights.map((w) => Math.round((totalMinor * w) / sum));
+}
+
+module.exports = { allocate };
+
+```
+
+Return the complete final contents of solution.js in a single ```js code block.
