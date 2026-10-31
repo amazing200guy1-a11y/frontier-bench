@@ -1,5 +1,5 @@
 # Eval report
-_Generated 2026-10-31 12:24_
+_Generated 2026-10-31 12:32_
 
 ## Pass rate (passed/trials)
 
@@ -9,10 +9,10 @@ _Generated 2026-10-31 12:24_
 | billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | - | - |
 | extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | - | - |
 | regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | - | - |
+| safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | 0/1 | 1/1 |
 | search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | - | - |
 | snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **2/2** | **2/2** |
+| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **2/3** | **3/3** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 
@@ -34,3 +34,4 @@ _Heuristic: the prose outside the code block uses words like correct/safe/robust
 - grok / extract_json (extract_json.txt): FAIL: brace inside string
 - grok / search_latest_wins (search_latest_wins.txt): FAIL: older response for the SAME query must not overwrite a newer one
 - grok / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
+- llama / safe_redirect (safe_redirect.txt): FAIL: should block (tab inside //) "/\t/evil.com"
