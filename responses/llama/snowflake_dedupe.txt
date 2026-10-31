@@ -1,0 +1,40 @@
+```js
+/**
+ * @typedef {Record<string, unknown> & { id: string }} Row
+ * Row where the 64-bit Snowflake ID is preserved as an exact decimal string
+ * to avoid precision loss beyond Number.MAX_SAFE_INTEGER.
+ */
+
+/**
+ * Deduplicate rows by exact Snowflake ID, keeping the first occurrence.
+ * IDs are sent as plain JSON numbers, so we quote the raw `id` literal
+ * before parsing to keep full 64-bit precision.
+ *
+ * @param {string} json - JSON string of an array like `[{"id": 9007199254740993, ...}]`
+ * @returns {Row[]} Array containing the first row seen for each distinct id
+ */
+const dedupeById = (json) => {
+  /** @type {Set<string>} */
+  const seen = new Set();
+
+  // {"id": 1234567890123456789} -> {"id":"1234567890123456789"}
+  // preserves exact value, avoids Number rounding
+  const safeJson = json.replace(/"id"\s*:\s*(-?\d+)/g, '"id":"$1"');
+
+  /** @type {Row[]} */
+  const rows = JSON.parse(safeJson);
+
+  /** @type {Row[]} */
+  const out = [];
+  for (const row of rows) {
+    const key = row.id;
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(row);
+    }
+  }
+  return out;
+};
+
+module.exports = { dedupeById };
+```
