@@ -1,5 +1,5 @@
 # Eval report
-_Generated 2026-10-31 12:47_
+_Generated 2026-10-31 12:51_
 
 ## Pass rate (passed/trials)
 
@@ -7,12 +7,12 @@ _Generated 2026-10-31 12:47_
 |---|---|---|---|---|---|---|---|
 | allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
 | billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 |
-| extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | - | - |
+| extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | 1/1 | - |
 | regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | 0/1 | 1/1 |
 | search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
 | snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **5/6** | **5/6** |
+| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **6/7** | **5/6** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 
