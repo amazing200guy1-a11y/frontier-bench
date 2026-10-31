@@ -159,7 +159,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Evaluated Models</div>
-        <div class="stat-val">5</div>
+        <div class="stat-val">6</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Benchmark Tasks</div>
@@ -167,7 +167,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Executions</div>
-        <div class="stat-val">35</div>
+        <div class="stat-val">36</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Confident-But-Wrong</div>
@@ -191,6 +191,19 @@
         <tbody>
           <tr>
             <td><span class="rank-num rank-1">1</span></td>
+            <td><strong>MISTRAL</strong></td>
+            <td>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width: 100%; background: var(--green);"></div>
+              </div>
+              <strong>100%</strong>
+            </td>
+            <td>1 / 1</td>
+            <td><span style="color: var(--text-muted); font-weight: 600;">0</span></td>
+            <td><span class="pill pill-pass">OPTIMAL</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-num rank-2">2</span></td>
             <td><strong>CLAUDE</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -203,7 +216,7 @@
             <td><span class="pill pill-pass">OPTIMAL</span></td>
           </tr>
           <tr>
-            <td><span class="rank-num rank-2">2</span></td>
+            <td><span class="rank-num rank-3">3</span></td>
             <td><strong>DEEPSEEK</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -216,7 +229,7 @@
             <td><span class="pill pill-pass">OPTIMAL</span></td>
           </tr>
           <tr>
-            <td><span class="rank-num rank-3">3</span></td>
+            <td><span class="rank-num ">4</span></td>
             <td><strong>GEMINI</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -229,7 +242,7 @@
             <td><span class="pill pill-pass">OPTIMAL</span></td>
           </tr>
           <tr>
-            <td><span class="rank-num ">4</span></td>
+            <td><span class="rank-num ">5</span></td>
             <td><strong>CHATGPT</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -242,7 +255,7 @@
             <td><span class="pill pill-fail">DEFECTIVE</span></td>
           </tr>
           <tr>
-            <td><span class="rank-num ">5</span></td>
+            <td><span class="rank-num ">6</span></td>
             <td><strong>GROK</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -263,7 +276,7 @@
       <table>
         <thead>
           <tr>
-            <th>Task & Blind Spot</th><th>CHATGPT</th><th>CLAUDE</th><th>DEEPSEEK</th><th>GEMINI</th><th>GROK</th>
+            <th>Task & Blind Spot</th><th>CHATGPT</th><th>CLAUDE</th><th>DEEPSEEK</th><th>GEMINI</th><th>GROK</th><th>MISTRAL</th>
           </tr>
         </thead>
         <tbody>
@@ -271,37 +284,37 @@
             <td style="min-width: 240px;">
               <strong><code>allocate_minor_units</code></strong>
               <div class="task-desc">Largest-remainder allocation with a deterministic tie-break; models dump the leftover on the first/last recipient or round each share independently.</div>
-            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: Missing expected exception (RangeError).</span></td></tr>
+            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: Missing expected exception (RangeError).</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>billing_dates</code></strong>
               <div class="task-desc">Month-end clamping must be computed from the ORIGINAL anchor day, not from the previous renewal date (iterative clamping drifts: Jan 31 -> Feb 28 -> Mar 28).</div>
-            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td></tr>
+            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>extract_json</code></strong>
               <div class="task-desc">Greedy regex /{[\s\S]*}/ breaks on trailing braces; naive brace counting breaks on braces inside strings and on a malformed first candidate.</div>
-            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: brace inside string</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: brace inside string</span></td></tr>
+            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: brace inside string</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: brace inside string</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>regex_filter</code></strong>
               <div class="task-desc">Using RegExp with the /g flag for isFlagged introduces statefulness via lastIndex: repeated calls on the same text oscillate between true and false.</div>
-            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: repeat isFlagged call with same text must also return true (RegExp /g statefulness bug)</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td></tr>
+            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: repeat isFlagged call with same text must also return true (RegExp /g statefulness bug)</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>safe_redirect</code></strong>
               <div class="task-desc">Prefix checks (startsWith('/')) accept protocol-relative '//evil.com', backslash and tab tricks, userinfo '@' hosts and lookalike domains; CR/LF reaches the Location header.</div>
-            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: should block (backslash) "/\\evil.com"</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: should block (tab inside //) "/\t/evil.com"</span></td><td><span class="pill pill-pass">✓ PASS</span></td></tr>
+            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: should block (backslash) "/\\evil.com"</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: should block (tab inside //) "/\t/evil.com"</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>search_latest_wins</code></strong>
               <div class="task-desc">Guarding by query value instead of call sequence (a Refresh re-runs the same query), and stale rejections still reaching onError.</div>
-            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: older response for the SAME query must not overwrite a newer one</span></td></tr>
+            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: older response for the SAME query must not overwrite a newer one</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>snowflake_dedupe</code></strong>
               <div class="task-desc">JSON.parse turns 64-bit integers into doubles above 2^53, so adjacent Snowflake IDs collapse into one and dedupe silently drops distinct rows.</div>
-            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td></tr>
+            </td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: ids must keep full precision and dedupe exactly</span></td><td><span class="pill pill-pass">✓ PASS</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -316,7 +329,7 @@
       <div class="alert-desc">FAIL: older response for the SAME query must not overwrite a newer one</div>
     </div>
     <footer style="margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--card-border); padding-top: 20px;">
-      FrontierBench Evaluation Suite v1.0 • Generated 2026-10-31 10:09:02 UTC • Open Source under MIT
+      FrontierBench Evaluation Suite v1.0 • Generated 2026-10-31 11:17:31 UTC • Open Source under MIT
     </footer>
   </div>
 </body>

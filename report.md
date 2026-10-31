@@ -1,18 +1,18 @@
 # Eval report
-_Generated 2026-10-31 11:09_
+_Generated 2026-10-31 12:17_
 
 ## Pass rate (passed/trials)
 
-| task | chatgpt | claude | deepseek | gemini | grok |
-|---|---|---|---|---|---|
-| allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 |
-| billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 |
-| regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 |
-| search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 |
-| snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** |
+| task | chatgpt | claude | deepseek | gemini | grok | mistral |
+|---|---|---|---|---|---|---|
+| allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | - |
+| billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | - |
+| extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | - |
+| regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | - |
+| safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | - |
+| search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | - |
+| snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 |
+| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **1/1** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 
