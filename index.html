@@ -167,7 +167,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Executions</div>
-        <div class="stat-val">41</div>
+        <div class="stat-val">43</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Confident-But-Wrong</div>
@@ -198,7 +198,7 @@
               </div>
               <strong>100%</strong>
             </td>
-            <td>3 / 3</td>
+            <td>4 / 4</td>
             <td><span style="color: var(--text-muted); font-weight: 600;">0</span></td>
             <td><span class="pill pill-pass">OPTIMAL</span></td>
           </tr>
@@ -230,6 +230,19 @@
           </tr>
           <tr>
             <td><span class="rank-num ">4</span></td>
+            <td><strong>LLAMA</strong></td>
+            <td>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width: 75%; background: var(--cyan);"></div>
+              </div>
+              <strong>75%</strong>
+            </td>
+            <td>3 / 4</td>
+            <td><span style="color: var(--text-muted); font-weight: 600;">0</span></td>
+            <td><span class="pill pill-pass">OPTIMAL</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-num ">5</span></td>
             <td><strong>GEMINI</strong></td>
             <td>
               <div class="progress-bar-wrap">
@@ -240,19 +253,6 @@
             <td>5 / 7</td>
             <td><span style="color: var(--text-muted); font-weight: 600;">0</span></td>
             <td><span class="pill pill-pass">OPTIMAL</span></td>
-          </tr>
-          <tr>
-            <td><span class="rank-num ">5</span></td>
-            <td><strong>LLAMA</strong></td>
-            <td>
-              <div class="progress-bar-wrap">
-                <div class="progress-bar-fill" style="width: 67%; background: var(--cyan);"></div>
-              </div>
-              <strong>67%</strong>
-            </td>
-            <td>2 / 3</td>
-            <td><span style="color: var(--text-muted); font-weight: 600;">0</span></td>
-            <td><span class="pill pill-fail">DEFECTIVE</span></td>
           </tr>
           <tr>
             <td><span class="rank-num ">6</span></td>
@@ -322,7 +322,7 @@
             <td style="min-width: 240px;">
               <strong><code>search_latest_wins</code></strong>
               <div class="task-desc">Guarding by query value instead of call sequence (a Refresh re-runs the same query), and stale rejections still reaching onError.</div>
-            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: older response for the SAME query must not overwrite a newer one</span></td><td><span style='color: var(--text-muted);'>-</span></td><td><span style='color: var(--text-muted);'>-</span></td></tr>
+            </td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-fail">✗ FAIL</span><span class="fail-tooltip">FAIL: older response for the SAME query must not overwrite a newer one</span></td><td><span class="pill pill-pass">✓ PASS</span></td><td><span class="pill pill-pass">✓ PASS</span></td></tr>
           <tr>
             <td style="min-width: 240px;">
               <strong><code>snowflake_dedupe</code></strong>
@@ -342,7 +342,7 @@
       <div class="alert-desc">FAIL: older response for the SAME query must not overwrite a newer one</div>
     </div>
     <footer style="margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--card-border); padding-top: 20px;">
-      FrontierBench Evaluation Suite v1.0 • Generated 2026-10-31 11:32:31 UTC • Open Source under MIT
+      FrontierBench Evaluation Suite v1.0 • Generated 2026-10-31 11:36:28 UTC • Open Source under MIT
     </footer>
   </div>
 </body>
