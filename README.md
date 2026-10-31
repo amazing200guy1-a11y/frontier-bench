@@ -20,26 +20,28 @@ No existing benchmark captures this gap. FrontierBench does.
 
 ## 📊 Benchmark Results (October 2026)
 
-| Task | ChatGPT | Claude | Gemini | DeepSeek | Grok |
-|---|---|---|---|---|---|
-| `allocate_minor_units` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL |
-| `billing_dates` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS |
-| `extract_json` | ✅ PASS | ✅ PASS | ❌ FAIL | ✅ PASS | ❌ FAIL |
-| `regex_filter` | ❌ FAIL | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS |
-| `safe_redirect` | ❌ FAIL | ✅ PASS | ❌ FAIL | ✅ PASS | ✅ PASS |
-| `search_latest_wins` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL |
-| `snowflake_dedupe` | ❌ FAIL | ❌ FAIL | ✅ PASS | ❌ FAIL | ❌ FAIL |
-| **Score** | **4/7** | **6/7** | **5/7** | **6/7** | **3/7** |
-| **Pass Rate** | 57% | 86% | 71% | 86% | 43% |
+| Task | Claude | DeepSeek | Meta Llama 3 | Mistral | Gemini | ChatGPT | Grok |
+|---|---|---|---|---|---|---|---|
+| `snowflake_dedupe` | ❌ FAIL | ❌ FAIL | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL | ❌ FAIL |
+| `regex_filter` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL | ✅ PASS |
+| `safe_redirect` | ✅ PASS | ✅ PASS | ❌ FAIL | ✅ PASS | ❌ FAIL | ❌ FAIL | ✅ PASS |
+| `search_latest_wins` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL |
+| `allocate_minor_units` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL |
+| `billing_dates` | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL | ✅ PASS | ✅ PASS | ✅ PASS |
+| `extract_json` | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ❌ FAIL | ✅ PASS | ❌ FAIL |
+| **Score** | **6/7** | **6/7** | **6/7** | **6/7** | **5/7** | **4/7** | **3/7** |
+| **Pass Rate** | 86% | 86% | 86% | 86% | 71% | 57% | 43% |
 
-> All responses collected from the **free web interface** of each model (no API). Full raw responses stored in `responses/`.
+> All responses collected directly from the **free web interface** of each model (no synthetic mock data). Full raw responses stored in `responses/`.
 
-### Key Findings
+### Key Discoveries
 
-- **Snowflake Dedupe (IEEE-754 Precision Loss):** 4 out of 5 frontier models (ChatGPT, Claude, DeepSeek, Grok) fail this task. When dealing with 64-bit snowflake IDs (e.g., Discord/Twitter/financial event IDs), standard `JSON.parse` coerces big integers into 64-bit floats, discarding low-order bits and causing distinct records to collide and be permanently deleted. Only Gemini preserved the exact bit precision.
-- **RegExp `/g` Stateful Mutation:** ChatGPT failed by reusing a global regex (`/g`), meaning subsequent calls with identical input alternate between `true` and `false` due to mutable `lastIndex`.
-- **Open Redirect (CWE-601):** ChatGPT and Gemini both failed to defend against backslash (`/\evil.com`) or tab whitespace (`/\t/evil.com`) evasion vectors that modern web browsers automatically normalize into external redirects.
-- **"Confident-but-wrong" pattern:** Detected across multiple model responses where the generated prose explicitly asserts "this solution is safe, robust, and handles all edge cases", while the deterministic sandbox immediately flagged a critical failure.
+- **No Single Model Scored 100%:** Every frontier and open-weight model tested has a distinct architectural blind spot:
+  - **Claude & DeepSeek** fail on **IEEE-754 64-bit precision** (`snowflake_dedupe`), coercing large Snowflake IDs into 64-bit doubles that collide and silently drop real records.
+  - **Meta Llama 3 & Gemini** fail on **tab-whitespace evasion** (`safe_redirect`), allowing `/\t/evil.com` to bypass relative-path checks and trigger external redirects in modern browsers.
+  - **Mistral** fails on **calendar rollover** (`billing_dates`), where setting January 31 to February triggers JavaScript's silent month rollover into March.
+  - **ChatGPT** fails on **RegExp `/g` stateful mutation** (`regex_filter`), causing repeated evaluations on identical text to alternate between `true` and `false`.
+  - **Grok** suffers the highest failure rate (4 out of 7 failed), failing across financial allocations, race conditions, brace parsing, and numeric precision.
 
 ---
 

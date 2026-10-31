@@ -1,0 +1,86 @@
+```js
+/**
+ * Extracts the first valid JSON object embedded in a string of text.
+ *
+ * LLM responses often wrap JSON in prose or markdown code fences, so this
+ * scans the text for candidate objects instead of assuming a clean payload.
+ * For every `{` in the text, it finds the matching `}` (ignoring braces
+ * inside JSON string literals) and attempts to parse that slice. The first
+ * slice that parses successfully is returned.
+ *
+ * This function is on the hot path of the agent loop and must never throw:
+ * all parsing is wrapped in try/catch, and non-string input returns `null`.
+ *
+ * @param {string} text - Arbitrary model output that may contain a JSON
+ *   object, e.g. `Here you go: {"answer": 42}`.
+ * @returns {Object|null} The first successfully parsed JSON object found in
+ *   the text, or `null` if the text is not a string or contains no valid
+ *   JSON object.
+ */
+function extractJson(text) {
+  if (typeof text !== 'string') {
+    return null;
+  }
+
+  for (
+    let start = text.indexOf('{');
+    start !== -1;
+    start = text.indexOf('{', start + 1)
+  ) {
+    const end = findObjectEnd(text, start);
+    if (end === -1) {
+      continue; // unbalanced candidate; try the next '{'
+    }
+    try {
+      return JSON.parse(text.slice(start, end + 1));
+    } catch {
+      // Not valid JSON (e.g. a brace in prose); try the next candidate.
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds the index of the `}` that balances the `{` at `start`, ignoring
+ * braces that appear inside JSON string literals (respecting backslash
+ * escapes). Operates purely on brace/quote structure and never throws.
+ *
+ * @param {string} text - The full text to scan.
+ * @param {number} start - Index of the opening `{`.
+ * @returns {number} Index of the matching `}`, or -1 if there is none.
+ */
+function findObjectEnd(text, start) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
+module.exports = { extractJson };
+```
