@@ -4,6 +4,9 @@
 
 > *Which AI model actually writes correct code — or just code that looks correct?*
 
+> 📺 **Live Demo Video (YouTube)**: [https://youtu.be/ln9LdT8Jccs](https://youtu.be/ln9LdT8Jccs)
+> 🌐 **Interactive Leaderboard**: [https://amazing200guy1-a11y.github.io/frontier-bench/](https://amazing200guy1-a11y.github.io/frontier-bench/)
+
 FrontierBench is an open-source evaluation harness that stress-tests frontier LLMs (ChatGPT, Claude, Gemini, DeepSeek, Grok) on real-world engineering edge cases. Every test is **deterministic**: no LLM judge, no vibes-based scoring — just real code running against real test cases with a binary PASS/FAIL verdict.
 
 ---

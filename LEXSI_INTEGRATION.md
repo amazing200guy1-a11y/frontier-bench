@@ -43,5 +43,6 @@ python lexsi_pipeline.py
 ## Links
 
 - **Live Leaderboard**: https://amazing200guy1-a11y.github.io/frontier-bench/
+- **YouTube Demo Video**: https://youtu.be/ln9LdT8Jccs
 - **GitHub**: https://github.com/amazing200guy1-a11y/frontier-bench
 - **Hackathon**: Lexsi Labs AI Safety & Alignment Hackathon 2026
