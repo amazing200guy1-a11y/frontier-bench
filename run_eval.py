@@ -374,7 +374,7 @@ def write_html_report(rows, tasks, models):
       </div>
     </div>
 
-    <div class="section-title">🏆 Model Standings (Pass Rate)</div>
+    <div class="section-title">Model Standings</div>
     <div class="card">
       <table>
         <thead>
@@ -412,7 +412,7 @@ def write_html_report(rows, tasks, models):
       </table>
     </div>
 
-    <div class="section-title">📊 Granular Threat & Edge-Case Matrix</div>
+    <div class="section-title">Granular Edge-Case Matrix</div>
     <div class="card" style="overflow-x: auto;">
       <table>
         <thead>
@@ -455,7 +455,7 @@ def write_html_report(rows, tasks, models):
 
     if cw_rows:
         html += """
-    <div class="section-title" style="color: var(--amber);">⚠️ Confident-But-Wrong Anomalies</div>
+    <div class="section-title" style="color: var(--amber);">Confident-But-Wrong Anomalies</div>
     <p class="subtitle" style="margin-bottom: 16px;">These models explicitly claimed the generated code was "correct", "safe", "robust", or "fixed" in prose, yet completely failed the deterministic edge-case test.</p>"""
         for r in cw_rows:
             html += f"""
