@@ -770,7 +770,90 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
+  
+<!-- LEXSI SAFETY REPAIR LOOP SECTION -->
+<div class="section" id="lexsi-loop" style="margin-top:2.5rem;">
+  <div class="section-header">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>Lexsi Safety Repair Loop</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <!-- BEFORE card -->
+    <div style="background:#0F131C;border:1px solid #2a3347;border-radius:10px;padding:1.25rem;text-align:center;">
+      <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b7280;margin-bottom:0.5rem;">AuditKIT &mdash; BEFORE</div>
+      <div style="font-size:2.8rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:#ef4444;line-height:1;">0%</div>
+      <div style="font-size:0.8rem;color:#6b7280;margin-top:0.25rem;">0 / 15 tasks safe</div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:#374151;background:#111827;border-radius:6px;padding:0.4rem 0.6rem;">Broken starter code</div>
+    </div>
+
+    <!-- DELTA arrow -->
+    <div style="background:#0F131C;border:1px solid #064e3b;border-radius:10px;padding:1.25rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#10b981;margin-bottom:0.5rem;">CuratorKIT + AuditKIT</div>
+      <div style="font-size:2.5rem;font-weight:800;color:#10b981;line-height:1;">+100%</div>
+      <div style="font-size:0.78rem;color:#6b7280;margin-top:0.25rem;">safety improvement</div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:#065f46;background:#022c22;border-radius:6px;padding:0.4rem 0.6rem;">0 regressions</div>
+    </div>
+
+    <!-- AFTER card -->
+    <div style="background:#0F131C;border:1px solid #064e3b;border-radius:10px;padding:1.25rem;text-align:center;">
+      <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b7280;margin-bottom:0.5rem;">AuditKIT &mdash; AFTER</div>
+      <div style="font-size:2.8rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:#10b981;line-height:1;">100%</div>
+      <div style="font-size:0.8rem;color:#6b7280;margin-top:0.25rem;">15 / 15 tasks safe</div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:#065f46;background:#022c22;border-radius:6px;padding:0.4rem 0.6rem;">Reference solutions verified</div>
+    </div>
+  </div>
+
+  <!-- Pipeline steps -->
+  <div style="background:#0F131C;border:1px solid #2a3347;border-radius:10px;padding:1.25rem;margin-bottom:1rem;">
+    <div style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#6b7280;margin-bottom:1rem;">4-Stage Pipeline</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.78rem;">
+      <div style="text-align:center;padding:0.75rem;background:#04070D;border-radius:8px;border:1px solid #1a2234;">
+        <div style="color:#10b981;font-weight:700;margin-bottom:0.3rem;">Stage 1</div>
+        <div style="color:#9ca3af;">AuditKIT</div>
+        <div style="color:#6b7280;font-size:0.7rem;margin-top:0.2rem;">Baseline eval</div>
+      </div>
+      <div style="text-align:center;padding:0.75rem;background:#04070D;border-radius:8px;border:1px solid #1a2234;">
+        <div style="color:#f59e0b;font-weight:700;margin-bottom:0.3rem;">Stage 2</div>
+        <div style="color:#9ca3af;">CuratorKIT</div>
+        <div style="color:#6b7280;font-size:0.7rem;margin-top:0.2rem;">Repair dataset</div>
+      </div>
+      <div style="text-align:center;padding:0.75rem;background:#04070D;border-radius:8px;border:1px solid #1a2234;">
+        <div style="color:#10b981;font-weight:700;margin-bottom:0.3rem;">Stage 3</div>
+        <div style="color:#9ca3af;">AuditKIT</div>
+        <div style="color:#6b7280;font-size:0.7rem;margin-top:0.2rem;">Post-repair eval</div>
+      </div>
+      <div style="text-align:center;padding:0.75rem;background:#04070D;border-radius:8px;border:1px solid #1a2234;">
+        <div style="color:#60a5fa;font-weight:700;margin-bottom:0.3rem;">Stage 4</div>
+        <div style="color:#9ca3af;">Delta Report</div>
+        <div style="color:#6b7280;font-size:0.7rem;margin-top:0.2rem;">before_vs_after.json</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool stack + provenance -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div style="background:#0F131C;border:1px solid #2a3347;border-radius:10px;padding:1rem;">
+      <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#6b7280;margin-bottom:0.6rem;">Tool Stack</div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;font-family:'JetBrains Mono',monospace;">auditkit</span><span style="color:#10b981;">v1.1.3</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;font-family:'JetBrains Mono',monospace;">curatorkit</span><span style="color:#10b981;">v0.1.22</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;font-family:'JetBrains Mono',monospace;">frontierbench</span><span style="color:#60a5fa;">v1.0</span></div>
+      </div>
+    </div>
+    <div style="background:#0F131C;border:1px solid #2a3347;border-radius:10px;padding:1rem;">
+      <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#6b7280;margin-bottom:0.6rem;">Repair Dataset</div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;">Pairs curated</span><span style="color:#10b981;font-family:'JetBrains Mono',monospace;">15</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;">Duplicates removed</span><span style="color:#10b981;font-family:'JetBrains Mono',monospace;">0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;"><span style="color:#9ca3af;">Formats exported</span><span style="color:#60a5fa;font-family:'JetBrains Mono',monospace;">alpaca, sharegpt</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END LEXSI SAFETY REPAIR LOOP SECTION -->
+
+<!-- FOOTER -->
   <div class="footer">
     <div class="footer-left">FrontierBench Evaluation Suite v1.0 &nbsp;&bull;&nbsp; MIT License &nbsp;&bull;&nbsp; Lexsi AI Safety &amp; Alignment Hackathon 2026</div>
     <div class="footer-right">Author: Usman Bamidele &nbsp;&bull;&nbsp; github.com/amazing200guy1-a11y/frontier-bench</div>

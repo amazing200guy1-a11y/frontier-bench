@@ -1,0 +1,28 @@
+{
+  "schema": "lexsi.provenance/1",
+  "library": "curatorkit",
+  "version": "0.1.22",
+  "git_sha": null,
+  "created_at": "2026-11-01T20:22:30Z",
+  "base_model": null,
+  "method": "curate",
+  "inputs": [
+    {
+      "kind": "dataset",
+      "ref": "C:\\frontier-bench\\lexsi_failures.jsonl",
+      "config": null,
+      "provenance": null
+    }
+  ],
+  "params": {
+    "generator_model": null,
+    "judge_model": null,
+    "grpo_scoring_model": null,
+    "export_formats": [
+      "alpaca",
+      "sharegpt"
+    ],
+    "output_split": null,
+    "pipeline_config_hash": "5a4399e9252ea743"
+  }
+}
