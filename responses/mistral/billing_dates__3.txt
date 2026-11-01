@@ -1,0 +1,41 @@
+```js
+/**
+ * Return the next `count` monthly billing dates (YYYY-MM-DD strings, UTC)
+ * following the anchor date (the day the customer first subscribed).
+ *
+ * When the anchor day does not exist in a target month (e.g. the 31st in a
+ * 30-day month, or the 29th–31st in February), the bill is clamped to the
+ * last day of that month. Subsequent months use the anchor's original day
+ * again whenever it exists.
+ *
+ * @param {string} anchorIso - Anchor subscription date as a YYYY-MM-DD string.
+ * @param {number} count - Number of upcoming billing dates to return.
+ * @returns {string[]} Upcoming billing dates as YYYY-MM-DD strings, in order.
+ */
+function nextBillingDates(anchorIso, count) {
+  const dates = [];
+  const anchor = new Date(`${anchorIso}T00:00:00Z`);
+  const anchorDay = anchor.getUTCDate();
+
+  for (let i = 1; i <= count; i++) {
+    const target = new Date(anchor);
+    target.setUTCMonth(anchor.getUTCMonth() + i);
+
+    // setUTCMonth overflows day-first months (Jan 31 -> Mar 02). If the day
+    // is later than the target month's last day, clamp to that last day.
+    const lastDay = new Date(
+      Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)
+    ).getUTCDate();
+
+    if (anchorDay > lastDay) {
+      target.setUTCDate(lastDay);
+    }
+
+    dates.push(target.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+```

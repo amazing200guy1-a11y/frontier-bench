@@ -1,0 +1,72 @@
+```js
+/**
+ * Finds the index of the `}` that closes the object opened at `start`.
+ * Braces inside JSON string literals are ignored, including escaped quotes.
+ *
+ * @param {string} text - Source text.
+ * @param {number} start - Index of an opening `{` in `text`.
+ * @returns {number} Index of the matching `}`, or -1 if the braces never balance.
+ */
+function findObjectEnd(text, start) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return i;
+  }
+  return -1;
+}
+
+/**
+ * Extracts the first valid JSON object from free-form text, such as an LLM
+ * response wrapped in prose or Markdown code fences.
+ *
+ * Candidates are tried left to right. A `{` that doesn't start a parseable
+ * object (e.g. a `{placeholder}` in prose) is skipped, and scanning continues.
+ * Braces inside string values are handled correctly, so `{"a": "}"}` works.
+ *
+ * Never throws: non-string input, empty input, or text with no valid object
+ * all return `null`.
+ *
+ * @param {unknown} text - Raw model output.
+ * @returns {Object|null} The first parsed JSON object, or null if none is found.
+ */
+function extractJson(text) {
+  if (typeof text !== "string" || text.length === 0) return null;
+
+  try {
+    for (
+      let start = text.indexOf("{");
+      start !== -1;
+      start = text.indexOf("{", start + 1)
+    ) {
+      const end = findObjectEnd(text, start);
+      if (end === -1) continue;
+
+      try {
+        return JSON.parse(text.slice(start, end + 1));
+      } catch {
+        // Not valid JSON (e.g. "{name}" in prose); try the next "{".
+      }
+    }
+  } catch {
+    // Defensive: this runs on every model response and must never throw.
+  }
+
+  return null;
+}
+
+module.exports = { extractJson };
+```

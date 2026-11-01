@@ -1,0 +1,48 @@
+/**
+ * Deduplicates an array of event records serialized as a JSON string.
+ *
+ * Records are deduplicated by their `id` field, keeping the first occurrence
+ * of each `id` and preserving the original order of the input array.
+ *
+ * Note: `id` is treated as a 64-bit integer (e.g. Snowflake IDs). Because
+ * `JSON.parse` yields `number` values, IDs larger than `Number.MAX_SAFE_INTEGER`
+ * (2^53 - 1) will already have lost precision by the time they reach this
+ * function. If exact matching of such IDs is required, upstream services
+ * should serialize IDs as strings (or the caller should use a parser that
+ * preserves BigInt).
+ *
+ * @param {string} jsonString - JSON-encoded array of records, each with an
+ *   `id` (number) and a `payload` field.
+ * @returns {Array<{id: number, payload: *}>} A new array containing the first
+ *   occurrence of each unique `id`, in input order.
+ * @throws {SyntaxError} If `jsonString` is not valid JSON.
+ * @throws {TypeError} If the parsed value is not an array.
+ *
+ * @example
+ * dedupeRecords(JSON.stringify([
+ *   { id: 1, payload: 'a' },
+ *   { id: 2, payload: 'b' },
+ *   { id: 1, payload: 'c' },
+ * ]));
+ * // => [{ id: 1, payload: 'a' }, { id: 2, payload: 'b' }]
+ */
+function dedupeRecords(jsonString) {
+  const records = JSON.parse(jsonString);
+
+  if (!Array.isArray(records)) {
+    throw new TypeError('Expected a JSON array of records');
+  }
+
+  const seen = new Set();
+  const result = [];
+
+  for (const record of records) {
+    if (seen.has(record.id)) continue;
+    seen.add(record.id);
+    result.push(record);
+  }
+
+  return result;
+}
+
+module.exports = { dedupeById: dedupeRecords, dedupeRecords };

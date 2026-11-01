@@ -1,0 +1,57 @@
+'use strict';
+
+const { URL } = require('node:url');
+
+const ALLOWED_ORIGIN = 'https://app.example.com';
+const ALLOWED_BASE_URL = new URL(ALLOWED_ORIGIN);
+
+// Reject control characters to avoid header injection, and raw backslashes
+// because URL parsers may normalize them to slashes and change the origin.
+const FORBIDDEN_CHARS = /[\u0000-\u001F\u007F\\]/;
+
+/**
+ * Determines whether a post-login redirect target is safe to write to a
+ * `Location` header.
+ *
+ * Safe values are:
+ * - root-relative paths beginning with exactly one `/`, e.g. `/settings`
+ * - absolute `https://app.example.com/...` URLs without credentials
+ *
+ * Rejects protocol-relative URLs such as `//evil.example`, backslash variants,
+ * control characters, other origins/protocols, and malformed values.
+ *
+ * @param {unknown} url Candidate redirect target.
+ * @returns {boolean} `true` only when the URL is safe. Never throws.
+ */
+function isSafeRedirect(url) {
+  try {
+    if (typeof url !== 'string' || url.length === 0) return false;
+
+    // Reject leading/trailing whitespace and control characters.
+    if (url !== url.trim()) return false;
+    if (FORBIDDEN_CHARS.test(url)) return false;
+
+    // Root-relative path. Require exactly one leading slash so that
+    // protocol-relative URLs like `//evil.example` are rejected.
+    if (url.startsWith('/')) {
+      if (url.startsWith('//')) return false;
+
+      const resolved = new URL(url, ALLOWED_BASE_URL);
+      return resolved.origin === ALLOWED_ORIGIN;
+    }
+
+    // Absolute URL: must be https and exactly the allowed origin.
+    const parsed = new URL(url);
+
+    return (
+      parsed.protocol === 'https:' &&
+      parsed.origin === ALLOWED_ORIGIN &&
+      parsed.username === '' &&
+      parsed.password === ''
+    );
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { isSafeRedirect };

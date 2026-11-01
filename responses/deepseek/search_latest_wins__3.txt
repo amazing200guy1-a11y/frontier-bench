@@ -1,0 +1,43 @@
+/**
+ * @typedef {Object} SearchController
+ * @property {(query: string) => Promise<void>} search - Runs a search for `query`.
+ */
+
+/**
+ * Builds a race-safe "search as you type" runner.
+ *
+ * Every call to `search` claims a monotonically increasing ticket. When a
+ * fetch settles, the result (or error) is only applied if its ticket is still
+ * the newest one; anything older is silently dropped. This means:
+ *
+ * - Keystrokes that resolve out of order never overwrite fresher results.
+ * - A stale request that fails never surfaces a spurious error toast.
+ * - Clicking Refresh (same query string, new request) correctly supersedes
+ *   the in-flight request, unlike a `latest === query` comparison.
+ *
+ * @param {(query: string) => Promise<any>} fetchResults - Performs the lookup.
+ * @param {(results: any, query: string) => void} render - Renders results.
+ * @param {(error: any, query: string) => void} onError - Called for failures of
+ *   the newest request only; stale failures are discarded.
+ * @returns {(query: string) => Promise<void>} An async `search(query)` that
+ *   resolves once the request settles and never rejects.
+ */
+function createSearch(fetchResults, render, onError) {
+  /** @type {number} Ticket of the most recently started search. */
+  let requestId = 0;
+
+  return async function search(query) {
+    const id = ++requestId;
+
+    try {
+      const results = await fetchResults(query);
+      if (id !== requestId) return; // superseded while in flight
+      render(results, query);
+    } catch (err) {
+      if (id !== requestId) return; // stale failure: no toast
+      onError(err, query);
+    }
+  };
+}
+
+module.exports = { createSearch };

@@ -1,0 +1,54 @@
+```js
+/**
+ * Allocates an integer amount proportionally across recipients using
+ * the largest remainder method.
+ *
+ * Any leftover units are assigned to recipients with the largest
+ * fractional remainders. Ties are resolved by the original index.
+ *
+ * @param {number} totalMinor - Total amount in minor currency units (kobo).
+ * @param {number[]} weights - Non-negative integer weights for recipients.
+ * @returns {number[]} Integer allocations in the same order as weights.
+ * @throws {RangeError} If the weights sum to zero.
+ */
+function allocate(totalMinor, weights) {
+  const sum = weights.reduce((total, weight) => total + weight, 0);
+
+  if (sum <= 0) {
+    throw new RangeError('weights must sum to a positive number');
+  }
+
+  const allocations = weights.map((weight, index) => {
+    const exactShare = (totalMinor * weight) / sum;
+    const amount = Math.floor(exactShare);
+
+    return {
+      index,
+      amount,
+      remainder: exactShare - amount,
+    };
+  });
+
+  const allocated = allocations.reduce(
+    (total, item) => total + item.amount,
+    0
+  );
+
+  const remaining = totalMinor - allocated;
+
+  allocations
+    .slice()
+    .sort(
+      (a, b) =>
+        b.remainder - a.remainder || a.index - b.index
+    )
+    .slice(0, remaining)
+    .forEach(({ index }) => {
+      allocations[index].amount += 1;
+    });
+
+  return allocations.map(({ amount }) => amount);
+}
+
+module.exports = { allocate };
+```

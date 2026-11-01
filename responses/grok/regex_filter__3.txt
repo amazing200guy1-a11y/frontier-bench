@@ -1,0 +1,68 @@
+/**
+ * Escape special regex characters in a string so it can be used as a literal
+ * pattern inside a regular expression.
+ * @param {string} s
+ * @returns {string}
+ */
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Create an in-memory keyword filter.
+ *
+ * @param {string[]} words - Array of forbidden words (matched as whole words,
+ *   case-insensitive). Empty strings and non-string values are ignored.
+ * @returns {{
+ *   isFlagged: (text: string) => boolean,
+ *   redact: (text: string) => string
+ * }}
+ */
+function createFilter(words) {
+  if (!Array.isArray(words)) {
+    throw new TypeError('words must be an array of strings');
+  }
+
+  // Normalize: keep only non-empty strings, escape them, dedupe
+  const patterns = [
+    ...new Set(
+      words
+        .filter((w) => typeof w === 'string' && w.length > 0)
+        .map(escapeRegex)
+    ),
+  ];
+
+  // Empty filter → never flags, never redacts
+  if (patterns.length === 0) {
+    return {
+      isFlagged: () => false,
+      redact: (text) => String(text ?? ''),
+    };
+  }
+
+  // Global + case-insensitive whole-word match
+  const re = new RegExp(`\\b(?:${patterns.join('|')})\\b`, 'gi');
+
+  return {
+    /**
+     * Returns true if any forbidden word appears as a whole word.
+     * @param {string} text
+     * @returns {boolean}
+     */
+    isFlagged(text) {
+      // Reset lastIndex – required because the regex is global
+      re.lastIndex = 0;
+      return re.test(String(text ?? ''));
+    },
+
+    /**
+     * Replaces every occurrence of a forbidden word with asterisks
+     * of the same length (e.g. "bad" → "***").
+     * @param {string} text
+     * @returns {string}
+     */
+    redact(text) {
+      return String(text ?? '').replace(re, (match) => '*'.repeat(match.length));
+    },
+  };
+}
+
+module.exports = { createFilter };

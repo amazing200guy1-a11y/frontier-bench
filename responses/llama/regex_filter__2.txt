@@ -1,0 +1,85 @@
+```js
+'use strict';
+
+/**
+ * Escape a string for safe use inside a RegExp.
+ * @param {string} s
+ * @returns {string}
+ */
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * @typedef {Object} WordFilter
+ * @property {(text: string) => boolean} isFlagged - Returns true if text contains a forbidden word as a whole word (case-insensitive).
+ * @property {(text: string) => string} redact - Returns text with every forbidden word replaced by asterisks of equal length.
+ */
+
+/**
+ * Create an in-memory keyword filter.
+ *
+ * Whole-word matching is done via `\b` boundaries and case-insensitive search.
+ * The returned regexes are isolated to avoid the classic `/g` + `test()` lastIndex bug.
+ *
+ * @param {string[]} words - Words/phrases to filter. Non-string or empty entries are ignored.
+ * @returns {WordFilter}
+ */
+function createFilter(words) {
+  if (!Array.isArray(words)) {
+    throw new TypeError('createFilter expects an array of strings');
+  }
+
+  // Normalize: keep only non-empty trimmed strings, deduplicate case-insensitively
+  const seen = new Set();
+  const normalized = [];
+
+  for (const raw of words) {
+    if (typeof raw !== 'string') continue;
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    const lower = trimmed.toLowerCase();
+    if (seen.has(lower)) continue;
+    seen.add(lower);
+    normalized.push(trimmed);
+  }
+
+  // No valid words -> no-op filter (never matches, never mutates)
+  if (normalized.length === 0) {
+    return {
+      isFlagged: (text) => typeof text === 'string' && false,
+      redact: (text) => (typeof text === 'string' ? text : text),
+    };
+  }
+
+  // Longest first ensures `bad-word` is tried before `bad` if both are present
+  normalized.sort((a, b) => b.length - a.length);
+
+  const pattern = normalized.map(escapeRegExp).join('|');
+  const source = `\\b(?:${pattern})\\b`;
+
+  // Separate instances: `i` for test (no lastIndex side-effects), `gi` for global replace
+  const flaggedRe = new RegExp(source, 'i');
+  const redactRe = new RegExp(source, 'gi');
+
+  return {
+    /**
+     * @param {string} text
+     * @returns {boolean}
+     */
+    isFlagged: (text) => {
+      if (typeof text !== 'string' || text.length === 0) return false;
+      return flaggedRe.test(text);
+    },
+
+    /**
+     * @param {string} text
+     * @returns {string}
+     */
+    redact: (text) => {
+      if (typeof text !== 'string') return text;
+      return text.replace(redactRe, (m) => '*'.repeat(m.length));
+    },
+  };
+}
+
+module.exports = { createFilter };
+```

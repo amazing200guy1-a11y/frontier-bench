@@ -1,0 +1,46 @@
+```js
+/**
+ * Calculates the next `count` monthly renewal dates based on an anchor date.
+ * Ensures that months with fewer days (like February or 30-day months) correctly
+ * snap to the last day of the month without permanently shifting the anchor day.
+ *
+ * @param {string} anchorIso - The initial subscription date in YYYY-MM-DD format (UTC).
+ * @param {number} count - The number of subsequent billing dates to generate.
+ * @returns {string[]} An array of the next billing dates in YYYY-MM-DD format.
+ */
+function nextBillingDates(anchorIso, count) {
+  const dates = [];
+  const anchorDate = new Date(`${anchorIso}T00:00:00Z`);
+  const anchorDay = anchorDate.getUTCDate();
+  const anchorYear = anchorDate.getUTCFullYear();
+  const anchorMonth = anchorDate.getUTCMonth();
+
+  for (let i = 1; i <= count; i++) {
+    // Get the target year and month for the current billing cycle
+    const targetDate = new Date(Date.UTC(anchorYear, anchorMonth + i, 1));
+    const targetYear = targetDate.getUTCFullYear();
+    const targetMonth = targetDate.getUTCFullYear() * 12 + targetDate.getUTCMonth(); // handles year rollovers smoothly via UTC constructor
+    
+    // Better target extraction:
+    const tYear = targetDate.getUTCFullYear();
+    const tMonth = targetDate.getUTCMonth();
+
+    // Find the last day of the target month (day 0 of the following month gives the last day)
+    const lastDayOfMonth = new Date(Date.UTC(tYear, tMonth + 1, 0)).getUTCDate();
+
+    // The billing day is the minimum of the original anchor day and the month's maximum days
+    const billingDay = Math.min(anchorDay, lastDayOfMonth);
+
+    // Format as YYYY-MM-DD
+    const yyyy = tYear;
+    const mm = String(tMonth + 1).padStart(2, '0');
+    const dd = String(billingDay).padStart(2, '0');
+
+    dates.push(`${yyyy}-${mm}-${dd}`);
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+```

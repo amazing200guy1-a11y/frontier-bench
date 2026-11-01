@@ -1,0 +1,134 @@
+```js
+'use strict';
+
+/**
+ * @file In-memory keyword filter for user comments.
+ *
+ * Matches forbidden words as whole words only (case-insensitive, Unicode-aware).
+ * The filter is stateless across calls and safe to reuse concurrently.
+ *
+ * @example
+ *   const { createFilter } = require('./solution');
+ *   const filter = createFilter(['bad', 'damn']);
+ *   filter.isFlagged('This is BAD!');      // => true
+ *   filter.isFlagged('badminton');         // => false (whole words only)
+ *   filter.redact('Some damn BAD text.');  // => 'Some **** *** text.'
+ */
+
+/**
+ * Escapes all regular-expression metacharacters in a string.
+ *
+ * @param {string} str - The raw word to escape.
+ * @returns {string} The escaped string, safe to embed in a RegExp source.
+ */
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * A keyword filter instance returned by {@link createFilter}.
+ *
+ * @typedef {Object} KeywordFilter
+ * @property {(text: string) => boolean} isFlagged
+ *   Returns `true` if the text contains any forbidden word as a whole word
+ *   (case-insensitive). Safe to call repeatedly; carries no match state.
+ * @property {(text: string) => string} redact
+ *   Returns a copy of the text with every forbidden whole word replaced by
+ *   asterisks matching its length (e.g. `'bad'` -> `'***'`).
+ */
+
+/**
+ * Creates an in-memory keyword filter from a list of forbidden words.
+ *
+ * Behavior:
+ * - Matching is case-insensitive and Unicode-aware (letters and digits in any
+ *   script count as word characters).
+ * - Words match only as whole words, so `bad` does not match inside `badminton`
+ *   or `badé`. Unlike `\b`-based matching, keywords that begin or end with
+ *   non-word characters (e.g. `c++`) still work.
+ * - Duplicate, non-string, and empty entries are ignored; the input array is
+ *   never mutated.
+ * - With an empty (or fully invalid) word list, `isFlagged` always returns
+ *   `false` and `redact` returns the text unchanged.
+ *
+ * @param {string[]} words - The forbidden words. May be empty.
+ * @returns {KeywordFilter} The filter instance.
+ * @throws {TypeError} If `words` is not an array.
+ *
+ * @example
+ *   const filter = createFilter(['bad', 'damn', 'C++']);
+ *   filter.isFlagged('I love C++!');        // => true
+ *   filter.redact('Some damn c++ text.');   // => 'Some **** *** text.'
+ */
+function createFilter(words) {
+  if (!Array.isArray(words)) {
+    throw new TypeError('createFilter expects an array of words.');
+  }
+
+  // Normalize the word list: keep non-empty strings, case-fold, dedupe, and
+  // sort longest-first so overlapping words (e.g. 'bad' / 'badly') prefer the
+  // most specific match.
+  const normalized = [
+    ...new Set(
+      words
+        .filter((word) => typeof word === 'string' && word.length > 0)
+        .map((word) => word.toLowerCase()),
+    ),
+  ].sort((a, b) => b.length - a.length);
+
+  if (normalized.length === 0) {
+    return {
+      isFlagged() {
+        return false;
+      },
+      redact(text) {
+        return text;
+      },
+    };
+  }
+
+  // Word boundaries expressed as lookarounds over Unicode word characters.
+  // This is more robust than `\b`, which is ASCII-only and fails for keywords
+  // that start or end with non-word characters such as 'c++'.
+  const pattern =
+    `(?<![\\p{L}\\p{N}_])(?:${normalized.map(escapeRegExp).join('|')})(?![\\p{L}\\p{N}_])`;
+
+  // Two separate regexes: `g` is needed for replaceAll behavior in redact(),
+  // but a global regex is stateful with .test() (lastIndex), so isFlagged()
+  // uses a non-global clone to stay side-effect free.
+  const redactPattern = new RegExp(pattern, 'giu');
+  const flagPattern = new RegExp(pattern, 'iu');
+
+  return {
+    /**
+     * Checks whether the text contains any forbidden whole word.
+     *
+     * @param {string} text - The text to inspect.
+     * @returns {boolean} `true` if any forbidden word is present.
+     * @throws {TypeError} If `text` is not a string.
+     */
+    isFlagged(text) {
+      if (typeof text !== 'string') {
+        throw new TypeError('isFlagged expects a string.');
+      }
+      return flagPattern.test(text);
+    },
+
+    /**
+     * Replaces every forbidden whole word with asterisks of the same length.
+     *
+     * @param {string} text - The text to redact.
+     * @returns {string} A new string with forbidden words masked.
+     * @throws {TypeError} If `text` is not a string.
+     */
+    redact(text) {
+      if (typeof text !== 'string') {
+        throw new TypeError('redact expects a string.');
+      }
+      return text.replace(redactPattern, (match) => '*'.repeat(match.length));
+    },
+  };
+}
+
+module.exports = { createFilter };
+```

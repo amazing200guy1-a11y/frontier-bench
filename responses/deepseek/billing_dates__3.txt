@@ -1,0 +1,69 @@
+/**
+ * Return the next monthly renewal dates following a subscription anchor date.
+ *
+ * Dates are computed in UTC. The anchor's day-of-month is preserved for every
+ * renewal whenever the target month is long enough; when it is not (e.g. the
+ * anchor is the 31st and the target month has 30 days), the renewal is clamped
+ * to the last day of that month. Each renewal is derived from the anchor
+ * itself — never from the previous (possibly clamped) renewal — so a short
+ * month never shifts the billing day permanently.
+ *
+ * @param {string} anchorIso - First-subscription date, formatted `YYYY-MM-DD`.
+ * @param {number} count - How many upcoming renewal dates to return.
+ * @returns {string[]} `count` renewal dates, each formatted `YYYY-MM-DD` (UTC),
+ *   in ascending order.
+ * @throws {TypeError} If `anchorIso` is not a real `YYYY-MM-DD` calendar date.
+ * @throws {RangeError} If `count` is not a non-negative integer.
+ *
+ * @example
+ * nextBillingDates('2024-01-31', 4);
+ * // => ['2024-02-29', '2024-03-31', '2024-04-30', '2024-05-31']
+ *
+ * @example
+ * nextBillingDates('2023-01-31', 3);
+ * // => ['2023-02-28', '2023-03-31', '2023-04-30']
+ */
+function nextBillingDates(anchorIso, count) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(anchorIso);
+  if (!match) {
+    throw new TypeError(`Invalid anchor date (expected YYYY-MM-DD): ${anchorIso}`);
+  }
+
+  const anchorYear = Number(match[1]);
+  const anchorMonth = Number(match[2]) - 1; // 0-based
+  const anchorDay = Number(match[3]);
+
+  // Reject dates like 2024-02-31 or 2024-13-01 that the regex lets through.
+  const probe = new Date(Date.UTC(anchorYear, anchorMonth, anchorDay));
+  if (
+    probe.getUTCFullYear() !== anchorYear ||
+    probe.getUTCMonth() !== anchorMonth ||
+    probe.getUTCDate() !== anchorDay
+  ) {
+    throw new TypeError(`Invalid anchor date (not a real calendar date): ${anchorIso}`);
+  }
+
+  if (!Number.isInteger(count) || count < 0) {
+    throw new RangeError(`count must be a non-negative integer, got: ${count}`);
+  }
+
+  const dates = [];
+  for (let i = 1; i <= count; i++) {
+    const monthIndex = anchorMonth + i;
+    const year = anchorYear + Math.floor(monthIndex / 12);
+    const month = monthIndex % 12;
+
+    // Day 0 of the following month === last day of the target month.
+    const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const day = Math.min(anchorDay, lastDayOfMonth);
+
+    const yyyy = String(year).padStart(4, '0');
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    dates.push(`${yyyy}-${mm}-${dd}`);
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };

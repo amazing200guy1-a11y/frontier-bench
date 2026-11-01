@@ -1,0 +1,63 @@
+const ALLOWED_ORIGIN = 'https://app.example.com';
+
+/**
+ * Determines whether a candidate redirect target is safe to put in a Location header.
+ *
+ * Allowed:
+ * - Same-site relative paths that begin with a single "/" (e.g. "/dashboard", "/?q=1").
+ *   Protocol-relative URLs ("//evil.com") and paths that start with "/\" are rejected.
+ * - Absolute HTTPS URLs whose origin is exactly ALLOWED_ORIGIN
+ *   (scheme + host + optional port must match; path/query/hash may differ).
+ *
+ * Rejected (returns false, never throws):
+ * - Non-string values, empty string, whitespace-only strings
+ * - javascript:, data:, vbscript: and other non-https schemes
+ * - Protocol-relative URLs, backslash tricks, userinfo tricks, etc.
+ * - Any absolute URL whose origin does not exactly equal ALLOWED_ORIGIN
+ *
+ * @param {unknown} url - Value of the `next` query parameter (or any candidate Location value)
+ * @returns {boolean} true only when the URL is considered safe for redirection
+ */
+function isSafeRedirect(url) {
+  if (typeof url !== 'string') {
+    return false;
+  }
+
+  // Trim only leading/trailing whitespace; keep internal spaces so they fail later
+  const trimmed = url.trim();
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  // Fast-path for relative same-site paths: must start with exactly one "/"
+  // and must not be protocol-relative (//) or backslash-smuggled (/\)
+  if (trimmed.startsWith('/')) {
+    if (trimmed.startsWith('//') || trimmed.startsWith('/\\')) {
+      return false;
+    }
+    // Optional extra safety: reject control characters that could split headers
+    if (/[\x00-\x1f\x7f]/.test(trimmed)) {
+      return false;
+    }
+    return true;
+  }
+
+  // Absolute URL path: parse with the WHATWG URL constructor
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    // Malformed URL → unsafe
+    return false;
+  }
+
+  // Only https is allowed; origin must match exactly (scheme + host + port)
+  if (parsed.protocol !== 'https:') {
+    return false;
+  }
+
+  // Compare origins (new URL().origin is already normalized)
+  return parsed.origin === ALLOWED_ORIGIN;
+}
+
+module.exports = { isSafeRedirect };

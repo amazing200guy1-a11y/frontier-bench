@@ -1,0 +1,146 @@
+'use strict';
+
+/**
+ * A "word character" in the Unicode sense. JS's built-in `\b` is ASCII-only,
+ * so it silently fails on accented letters, CJK, etc. We build the boundary
+ * ourselves from this class instead.
+ * @type {string}
+ */
+const WORD_CHAR = '[\\p{L}\\p{N}\\p{M}_]';
+
+/** Word-character test at the start of a forbidden word. */
+const STARTS_WITH_WORD_CHAR = /^[\p{L}\p{N}\p{M}_]/u;
+
+/** Word-character test at the end of a forbidden word. */
+const ENDS_WITH_WORD_CHAR = /[\p{L}\p{N}\p{M}_]$/u;
+
+/** Characters that are special in a RegExp source and must be escaped. */
+const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/g;
+
+/**
+ * Escape a literal string so it can be embedded verbatim in a RegExp.
+ * @param {string} str
+ * @returns {string}
+ */
+const escapeRegExp = (str) => str.replace(REGEX_SPECIALS, '\\$&');
+
+/**
+ * @param {unknown} value
+ * @param {string} name
+ * @returns {string}
+ * @throws {TypeError} If `value` is not a string.
+ */
+function assertString(value, name) {
+  if (typeof value !== 'string') {
+    const actual = value === null ? 'null' : typeof value;
+    throw new TypeError(`${name} must be a string, received ${actual}`);
+  }
+  return value;
+}
+
+/**
+ * @typedef {Object} KeywordFilter
+ * @property {(text: string) => boolean} isFlagged
+ *   Returns `true` if `text` contains at least one forbidden word as a whole
+ *   word (case-insensitive). Stateless — safe to call repeatedly/interleaved.
+ * @property {(text: string) => string} redact
+ *   Returns `text` with every forbidden word occurrence replaced by `*`
+ *   characters of the same length (code units, so output length is preserved).
+ */
+
+/**
+ * Filter used when no (non-empty) words were supplied. Still validates input.
+ * @type {KeywordFilter}
+ */
+const NOOP_FILTER = Object.freeze({
+  isFlagged: (text) => {
+    assertString(text, 'text');
+    return false;
+  },
+  redact: (text) => assertString(text, 'text'),
+});
+
+/**
+ * Builds an in-memory keyword filter.
+ *
+ * Matching is case-insensitive and whole-word: a forbidden word only matches
+ * when it is not immediately surrounded by other word characters. Words are
+ * matched literally (no regex syntax is interpreted) and the alternation is
+ * ordered longest-first so the most specific word wins in `redact`.
+ *
+ * Empty strings in `words` are ignored; duplicates are collapsed.
+ *
+ * @param {readonly string[]} words Forbidden words / phrases.
+ * @returns {KeywordFilter} A frozen filter object.
+ * @throws {TypeError} If `words` is not an array, contains a non-string, or a
+ *   matcher cannot be constructed.
+ *
+ * @example
+ * const filter = createFilter(['bad', 'worse words']);
+ * filter.isFlagged('This is BAD.');        // true
+ * filter.isFlagged('badminton');           // false (not a whole word)
+ * filter.redact('bad and worse words');    // '*** and ***********'
+ */
+function createFilter(words) {
+  if (!Array.isArray(words)) {
+    throw new TypeError('createFilter(words): `words` must be an array of strings');
+  }
+
+  /** @type {Set<string>} */
+  const unique = new Set();
+  for (const word of words) {
+    if (typeof word !== 'string') {
+      throw new TypeError('createFilter(words): every entry in `words` must be a string');
+    }
+    if (word.length > 0) unique.add(word);
+  }
+
+  if (unique.size === 0) return NOOP_FILTER;
+
+  // Longest-first: with leftmost-first alternation this prefers the most
+  // specific match (e.g. "worse words" over "worse"), and keeps `redact`
+  // deterministic across overlapping candidates.
+  const ordered = [...unique].sort(
+    (a, b) => b.length - a.length || (a < b ? -1 : a > b ? 1 : 0),
+  );
+
+  const source = ordered
+    .map((word) => {
+      const left = STARTS_WITH_WORD_CHAR.test(word) ? `(?<!${WORD_CHAR})` : '';
+      const right = ENDS_WITH_WORD_CHAR.test(word) ? `(?!${WORD_CHAR})` : '';
+      return `${left}${escapeRegExp(word)}${right}`;
+    })
+    .join('|');
+
+  const pattern = `(?:${source})`;
+
+  /** @type {RegExp} */
+  let scanRe; // stateless: no `g` flag, so `lastIndex` is never consulted
+  /** @type {RegExp} */
+  let replaceRe; // global: used only by String#replace, which resets lastIndex
+  try {
+    scanRe = new RegExp(pattern, 'iu');
+    replaceRe = new RegExp(pattern, 'giu');
+  } catch (err) {
+    throw new TypeError(
+      `createFilter(words): could not build matcher: ${/** @type {Error} */ (err).message}`,
+      { cause: err },
+    );
+  }
+
+  /** @type {KeywordFilter} */
+  const filter = {
+    isFlagged(text) {
+      assertString(text, 'text');
+      return scanRe.test(text);
+    },
+    redact(text) {
+      assertString(text, 'text');
+      return text.replace(replaceRe, (match) => '*'.repeat(match.length));
+    },
+  };
+
+  return Object.freeze(filter);
+}
+
+module.exports = { createFilter };

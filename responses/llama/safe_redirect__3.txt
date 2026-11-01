@@ -1,0 +1,59 @@
+```js
+const ALLOWED_ORIGIN = 'https://app.example.com';
+const ALLOWED_HOST = 'app.example.com';
+
+/**
+ * Determine if a URL is safe to use as a redirect target for a Location header.
+ *
+ * Security properties:
+ * - Rejects non-strings, empty strings, and any value containing CR/LF or %0D/%0A
+ * - Allows only:
+ *   1) Same-site absolute-paths: starts with single "/" but not "//" or "/\" (blocks protocol-relative)
+ *   2) Absolute HTTPS URLs where origin === https://app.example.com, host === app.example.com, and no credentials
+ * - Rejects all other schemes (javascript:, data:, etc.), protocol-relative URLs, and look-alike origins
+ *
+ * @param {unknown} url - Candidate redirect value (usually from `next` query param)
+ * @returns {boolean} True if safe to redirect, false otherwise. Never throws.
+ */
+function isSafeRedirect(url) {
+  try {
+    if (typeof url !== 'string') return false;
+    if (url.length === 0) return false;
+
+    // Prevent HTTP response splitting via Location header
+    if (url.includes('\r') || url.includes('\n')) return false;
+    if (/%0d|%0a/i.test(url)) return false;
+
+    // 1) Same-site relative path: "/path" but not "//evil" or "/\evil"
+    if (url.startsWith('/')) {
+      if (url.length > 1) {
+        const second = url[1];
+        if (second === '/' || second === '\\') {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // 2) Absolute URL on allowed origin
+    try {
+      const parsed = new URL(url);
+
+      if (parsed.protocol !== 'https:') return false;
+      if (parsed.hostname !== ALLOWED_HOST) return false;
+      if (parsed.origin !== ALLOWED_ORIGIN) return false;
+      // Disallow https://user:pass@app.example.com and https://app.example.com@evil.com tricks
+      if (parsed.username || parsed.password) return false;
+
+      return true;
+    } catch {
+      // Not a valid absolute URL and not a relative "/" path
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { isSafeRedirect };
+```

@@ -1,0 +1,161 @@
+```js
+// solution.js
+'use strict';
+
+/**
+ * @typedef {string | number | null | undefined} RawId
+ * @typedef {{ id?: RawId, [key: string]: unknown }} Row
+ */
+
+const WHITESPACE = new Set([' ', '\t', '\n', '\r']);
+
+/**
+ * Returns the index of the first non-whitespace character at or after `i`.
+ * @param {string} text
+ * @param {number} i
+ * @returns {number}
+ */
+const skipWs = (text, i) => {
+  while (i < text.length && WHITESPACE.has(text[i])) i++;
+  return i;
+};
+
+/**
+ * Returns the index just past the string literal that starts at `i`.
+ * @param {string} text
+ * @param {number} i Index of the opening quote.
+ * @returns {number}
+ */
+const skipString = (text, i) => {
+  i++;
+  while (text[i] !== '"') i += text[i] === '\\' ? 2 : 1;
+  return i + 1;
+};
+
+/**
+ * Returns the index just past the JSON value that starts at `i`.
+ * Assumes the text is already known to be valid JSON.
+ * @param {string} text
+ * @param {number} i Index of the first character of the value.
+ * @returns {number}
+ */
+const skipValue = (text, i) => {
+  const c = text[i];
+  if (c === '"') return skipString(text, i);
+
+  if (c === '{' || c === '[') {
+    let depth = 0;
+    while (i < text.length) {
+      const ch = text[i];
+      if (ch === '"') {
+        i = skipString(text, i);
+        continue;
+      }
+      if (ch === '{' || ch === '[') depth++;
+      else if (ch === '}' || ch === ']') depth--;
+      i++;
+      if (depth === 0) return i;
+    }
+    return i;
+  }
+
+  // number, true, false, null
+  while (i < text.length && !WHITESPACE.has(text[i]) && !',]}'.includes(text[i])) i++;
+  return i;
+};
+
+/**
+ * Extracts the raw source token of each top-level array element's `id`
+ * property, without converting numbers to doubles. Aligned by index with
+ * the parsed array; `undefined` where an element has no `id`.
+ * If a key is duplicated, the last one wins, matching JSON.parse.
+ * @param {string} text Valid JSON whose root is an array.
+ * @returns {(string | undefined)[]}
+ */
+const extractRawIds = (text) => {
+  /** @type {(string | undefined)[]} */
+  const ids = [];
+  let i = skipWs(text, 0) + 1; // past '['
+  i = skipWs(text, i);
+  if (text[i] === ']') return ids;
+
+  while (true) {
+    /** @type {string | undefined} */
+    let rawId;
+
+    if (text[i] === '{') {
+      i = skipWs(text, i + 1);
+      while (text[i] !== '}') {
+        const keyEnd = skipString(text, i);
+        const key = JSON.parse(text.slice(i, keyEnd));
+        i = skipWs(text, keyEnd) + 1; // past ':'
+        i = skipWs(text, i);
+        const valueEnd = skipValue(text, i);
+        if (key === 'id') rawId = text.slice(i, valueEnd);
+        i = skipWs(text, valueEnd);
+        if (text[i] === ',') i = skipWs(text, i + 1);
+      }
+      i++; // past '}'
+    } else {
+      i = skipValue(text, i);
+    }
+
+    ids.push(rawId);
+    i = skipWs(text, i);
+    if (text[i] === ',') {
+      i = skipWs(text, i + 1);
+      continue;
+    }
+    return ids;
+  }
+};
+
+/**
+ * Builds a collision-free dedupe key from a raw id token.
+ * - Integer tokens are normalized via BigInt, so exact 64-bit values are kept
+ *   and "007"-style or "-0" quirks can't create false differences.
+ * - Strings keep their own namespace so "123" never collides with 123.
+ * @param {string | undefined} raw Raw JSON token for the id.
+ * @returns {string}
+ */
+const toKey = (raw) => {
+  if (raw === undefined) return 'u:';
+  if (raw === 'null') return 'n:';
+  if (raw.startsWith('"')) return `s:${JSON.parse(raw)}`;
+  if (/^-?\d+$/.test(raw)) return `i:${BigInt(raw)}`;
+  return `f:${Number(raw)}`; // 1.0 and 1e0 compare equal; non-integers are inherently lossy
+};
+
+/**
+ * Removes duplicate rows by `id`, keeping the first row seen for each id.
+ * IDs are compared using their exact source text, so 64-bit Snowflake IDs
+ * beyond Number.MAX_SAFE_INTEGER are never conflated.
+ *
+ * Note: rows are returned as parsed by JSON.parse, so a large numeric `id`
+ * on a returned row is still the nearest double. Use the raw text (or have
+ * the API send ids as strings) if downstream code needs the exact value.
+ *
+ * @param {string} json JSON text whose root is an array of row objects.
+ * @returns {Row[]} The first row for each distinct id, in original order.
+ */
+function dedupeById(json) {
+  /** @type {Row[]} */
+  const rows = JSON.parse(json);
+  const rawIds = extractRawIds(json);
+
+  const seen = new Set();
+  /** @type {Row[]} */
+  const out = [];
+
+  for (const [index, row] of rows.entries()) {
+    const key = toKey(rawIds[index]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+
+  return out;
+}
+
+module.exports = { dedupeById };
+```

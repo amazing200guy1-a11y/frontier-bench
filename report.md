@@ -1,38 +1,68 @@
 # Eval report
-_Generated 2026-10-31 12:53_
+_Generated 2026-11-01 17:36_
 
 ## Pass rate (passed/trials)
 
 | task | chatgpt | claude | deepseek | gemini | grok | llama | mistral |
 |---|---|---|---|---|---|---|---|
-| allocate_minor_units | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| billing_dates | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 |
-| extract_json | 1/1 | 1/1 | 1/1 | 0/1 | 0/1 | 1/1 | 1/1 |
-| regex_filter | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| safe_redirect | 0/1 | 1/1 | 1/1 | 0/1 | 1/1 | 0/1 | 1/1 |
-| search_latest_wins | 1/1 | 1/1 | 1/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| snowflake_dedupe | 0/1 | 0/1 | 0/1 | 1/1 | 0/1 | 1/1 | 1/1 |
-| **overall** | **4/7** | **6/7** | **6/7** | **5/7** | **3/7** | **6/7** | **6/7** |
+| allocate_minor_units | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 | 3/3 |
+| billing_dates | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 |
+| extract_json | 3/3 | 3/3 | 3/3 | 0/3 | 0/3 | 3/3 | 3/3 |
+| regex_filter | 0/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| safe_redirect | 0/3 | 3/3 | 3/3 | 0/3 | 3/3 | 0/3 | 3/3 |
+| search_latest_wins | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 | 3/3 |
+| snowflake_dedupe | 0/3 | 0/3 | 0/3 | 3/3 | 0/3 | 3/3 | 3/3 |
+| **overall** | **12/21** | **18/21** | **18/21** | **15/21** | **9/21** | **18/21** | **18/21** |
 
 ## Confident-but-wrong (reply sounds sure, test failed)
 
 _Heuristic: the prose outside the code block uses words like correct/safe/robust/fixed. Verify by reading the reply._
 
 - grok / allocate_minor_units (allocate_minor_units.txt): FAIL: Missing expected exception (RangeError).
+- grok / allocate_minor_units (allocate_minor_units__2.txt): FAIL: Missing expected exception (RangeError).
+- grok / allocate_minor_units (allocate_minor_units__3.txt): FAIL: Missing expected exception (RangeError).
 - grok / search_latest_wins (search_latest_wins.txt): FAIL: older response for the SAME query must not overwrite a newer one
+- grok / search_latest_wins (search_latest_wins__2.txt): FAIL: older response for the SAME query must not overwrite a newer one
+- grok / search_latest_wins (search_latest_wins__3.txt): FAIL: older response for the SAME query must not overwrite a newer one
 
 ## All failures
 
 - chatgpt / regex_filter (regex_filter.txt): FAIL: repeat isFlagged call with same text must also return true (RegExp /g statefulness bug)
+- chatgpt / regex_filter (regex_filter__2.txt): FAIL: repeat isFlagged call with same text must also return true (RegExp /g statefulness bug)
+- chatgpt / regex_filter (regex_filter__3.txt): FAIL: repeat isFlagged call with same text must also return true (RegExp /g statefulness bug)
 - chatgpt / safe_redirect (safe_redirect.txt): FAIL: should block (backslash) "/\\evil.com"
+- chatgpt / safe_redirect (safe_redirect__2.txt): FAIL: should block (backslash) "/\\evil.com"
+- chatgpt / safe_redirect (safe_redirect__3.txt): FAIL: should block (backslash) "/\\evil.com"
 - chatgpt / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
+- chatgpt / snowflake_dedupe (snowflake_dedupe__2.txt): FAIL: ids must keep full precision and dedupe exactly
+- chatgpt / snowflake_dedupe (snowflake_dedupe__3.txt): FAIL: ids must keep full precision and dedupe exactly
 - claude / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
+- claude / snowflake_dedupe (snowflake_dedupe__2.txt): FAIL: ids must keep full precision and dedupe exactly
+- claude / snowflake_dedupe (snowflake_dedupe__3.txt): FAIL: ids must keep full precision and dedupe exactly
 - deepseek / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
+- deepseek / snowflake_dedupe (snowflake_dedupe__2.txt): FAIL: ids must keep full precision and dedupe exactly
+- deepseek / snowflake_dedupe (snowflake_dedupe__3.txt): FAIL: ids must keep full precision and dedupe exactly
 - gemini / extract_json (extract_json.txt): FAIL: brace inside string
+- gemini / extract_json (extract_json__2.txt): FAIL: brace inside string
+- gemini / extract_json (extract_json__3.txt): FAIL: brace inside string
 - gemini / safe_redirect (safe_redirect.txt): FAIL: should block (tab inside //) "/\t/evil.com"
+- gemini / safe_redirect (safe_redirect__2.txt): FAIL: should block (tab inside //) "/\t/evil.com"
+- gemini / safe_redirect (safe_redirect__3.txt): FAIL: should block (tab inside //) "/\t/evil.com"
 - grok / allocate_minor_units (allocate_minor_units.txt): FAIL: Missing expected exception (RangeError).
+- grok / allocate_minor_units (allocate_minor_units__2.txt): FAIL: Missing expected exception (RangeError).
+- grok / allocate_minor_units (allocate_minor_units__3.txt): FAIL: Missing expected exception (RangeError).
 - grok / extract_json (extract_json.txt): FAIL: brace inside string
+- grok / extract_json (extract_json__2.txt): FAIL: brace inside string
+- grok / extract_json (extract_json__3.txt): FAIL: brace inside string
 - grok / search_latest_wins (search_latest_wins.txt): FAIL: older response for the SAME query must not overwrite a newer one
+- grok / search_latest_wins (search_latest_wins__2.txt): FAIL: older response for the SAME query must not overwrite a newer one
+- grok / search_latest_wins (search_latest_wins__3.txt): FAIL: older response for the SAME query must not overwrite a newer one
 - grok / snowflake_dedupe (snowflake_dedupe.txt): FAIL: ids must keep full precision and dedupe exactly
+- grok / snowflake_dedupe (snowflake_dedupe__2.txt): FAIL: ids must keep full precision and dedupe exactly
+- grok / snowflake_dedupe (snowflake_dedupe__3.txt): FAIL: ids must keep full precision and dedupe exactly
 - llama / safe_redirect (safe_redirect.txt): FAIL: should block (tab inside //) "/\t/evil.com"
+- llama / safe_redirect (safe_redirect__2.txt): FAIL: should block (tab inside //) "/\t/evil.com"
+- llama / safe_redirect (safe_redirect__3.txt): FAIL: should block (tab inside //) "/\t/evil.com"
 - mistral / billing_dates (billing_dates.txt): FAIL: Jan 31 anchor (leap year) must return to the 31st after short months
+- mistral / billing_dates (billing_dates__2.txt): FAIL: Jan 31 anchor (leap year) must return to the 31st after short months
+- mistral / billing_dates (billing_dates__3.txt): FAIL: Jan 31 anchor (leap year) must return to the 31st after short months

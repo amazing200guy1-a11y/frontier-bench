@@ -1,0 +1,72 @@
+'use strict';
+
+/**
+ * Creates a case-insensitive whole-word filter for forbidden keywords.
+ *
+ * @param {string[]} words - Forbidden words to match and redact.
+ * @returns {{
+ *   isFlagged: (text: string) => boolean,
+ *   redact: (text: string) => string
+ * }} A filter with flagging and redaction methods.
+ * @throws {TypeError} If words is not an array of strings.
+ */
+function createFilter(words) {
+  if (!Array.isArray(words) || words.some((word) => typeof word !== 'string')) {
+    throw new TypeError('words must be an array of strings');
+  }
+
+  // Ignore empty keywords and remove duplicates.
+  const keywords = [...new Set(words.filter((word) => word.length > 0))];
+
+  // Match longer keywords first to handle overlapping alternatives.
+  keywords.sort((a, b) => b.length - a.length);
+
+  // Escape regex metacharacters so keywords are treated literally.
+  const escapeRegex = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const pattern = keywords.length
+    ? new RegExp(`\\b(?:${keywords.map(escapeRegex).join('|')})\\b`, 'gi')
+    : null;
+
+  /**
+   * Checks whether text contains a forbidden whole word.
+   *
+   * @param {string} text - Text to check.
+   * @returns {boolean} True if a forbidden word is present.
+   * @throws {TypeError} If text is not a string.
+   */
+  function isFlagged(text) {
+    if (typeof text !== 'string') {
+      throw new TypeError('text must be a string');
+    }
+
+    // A fresh regex avoids state leaking between repeated calls.
+    return pattern !== null && pattern.test(text);
+  }
+
+  /**
+   * Replaces every forbidden whole-word occurrence with asterisks.
+   *
+   * @param {string} text - Text to redact.
+   * @returns {string} Text with forbidden words redacted.
+   * @throws {TypeError} If text is not a string.
+   */
+  function redact(text) {
+    if (typeof text !== 'string') {
+      throw new TypeError('text must be a string');
+    }
+
+    if (pattern === null) {
+      return text;
+    }
+
+    return text.replace(
+      new RegExp(pattern.source, pattern.flags),
+      (match) => '*'.repeat(match.length)
+    );
+  }
+
+  return { isFlagged, redact };
+}
+
+module.exports = { createFilter };

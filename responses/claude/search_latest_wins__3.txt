@@ -1,0 +1,46 @@
+/**
+ * @template T
+ * @callback FetchResults
+ * @param {string} query
+ * @returns {Promise<T>}
+ */
+
+/**
+ * Creates a search function that is safe to call on every keystroke and from a
+ * Refresh button. Only the most recent call to `search` is allowed to render
+ * results or report errors; responses from superseded calls are discarded.
+ *
+ * Each call gets a monotonically increasing ticket, so the guard also works
+ * when the same query is issued twice (e.g. Refresh). Comparing query strings
+ * alone can't tell those calls apart, so an older, slower response for the
+ * same query could overwrite a newer one.
+ *
+ * @template T
+ * @param {FetchResults<T>} fetchResults Performs the search request.
+ * @param {(results: T, query: string) => void} render Called with results from the latest call only.
+ * @param {(err: unknown, query: string) => void} onError Called with errors from the latest call only.
+ * @returns {(query: string) => Promise<void>} Resolves once the call has finished. A superseded call
+ *   resolves without rendering or reporting anything.
+ */
+function createSearch(fetchResults, render, onError) {
+  /** @type {number} Ticket of the most recently started search. */
+  let latestTicket = 0;
+
+  return async function search(query) {
+    const ticket = ++latestTicket;
+    const isStale = () => ticket !== latestTicket;
+
+    try {
+      const results = await fetchResults(query);
+      if (isStale()) return;
+      render(results, query);
+    } catch (err) {
+      // A failure from a superseded request is irrelevant to what the user is
+      // looking at now, so don't toast it.
+      if (isStale()) return;
+      onError(err, query);
+    }
+  };
+}
+
+module.exports = { createSearch };

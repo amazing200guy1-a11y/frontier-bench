@@ -1,0 +1,49 @@
+/**
+ * @callback FetchResults
+ * @param {string} query
+ * @returns {Promise<any>}
+ */
+
+/**
+ * @callback Render
+ * @param {any} results
+ * @param {string} query
+ * @returns {void}
+ */
+
+/**
+ * @callback OnError
+ * @param {Error} err
+ * @param {string} query
+ * @returns {void}
+ */
+
+/**
+ * Creates a managed search function that prevents race conditions,
+ * outdated results, and spurious error toasts during search-as-you-type and refreshes.
+ *
+ * @param {FetchResults} fetchResults - Function to fetch search results.
+ * @param {Render} render - Function to render successful results.
+ * @param {OnError} onError - Function to handle search errors.
+ * @returns {(query: string) => Promise<void>} An async search function.
+ */
+function createSearch(fetchResults, render, onError) {
+  let activeId = 0;
+
+  return async function search(query) {
+    const currentId = ++activeId;
+
+    try {
+      const results = await fetchResults(query);
+      if (currentId === activeId) {
+        render(results, query);
+      }
+    } catch (err) {
+      if (currentId === activeId) {
+        onError(err, query);
+      }
+    }
+  };
+}
+
+module.exports = { createSearch };

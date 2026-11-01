@@ -1,0 +1,77 @@
+```js
+'use strict';
+
+const ALLOWED_ORIGIN = 'https://app.example.com';
+const MAX_URL_LENGTH = 2048;
+
+// C0 controls, space, DEL, and backslash. Browsers strip or rewrite these
+// (e.g. "/\t/evil.com" -> "//evil.com", "/\evil.com" -> "//evil.com"),
+// and CR/LF would enable header injection in the Location header.
+const FORBIDDEN_CHARS = /[\u0000-\u0020\u007f\\]/;
+
+/**
+ * Decide whether a post-login `next` value may be used in a Location header.
+ *
+ * Allowed:
+ *  - Same-site relative paths: a single leading "/" (e.g. "/dashboard?tab=1#x").
+ *  - Absolute https URLs whose origin is exactly https://app.example.com.
+ *
+ * Rejected (non-exhaustive):
+ *  - Non-strings, empty strings, and overly long values.
+ *  - Protocol-relative URLs ("//evil.com") and backslash variants ("/\evil.com").
+ *  - Look-alike hosts ("https://app.example.com.evil.com",
+ *    "https://app.example.com@evil.com").
+ *  - Other schemes ("javascript:", "data:", "http:") and other ports.
+ *  - Embedded credentials, whitespace, control characters (including CR/LF).
+ *
+ * Never throws; any unexpected condition yields `false`.
+ *
+ * @param {unknown} url - Raw value of the `next` query parameter.
+ * @returns {boolean} `true` only if the redirect target is safe to use.
+ */
+function isSafeRedirect(url) {
+  try {
+    if (typeof url !== 'string') return false;
+    if (url.length === 0 || url.length > MAX_URL_LENGTH) return false;
+    if (FORBIDDEN_CHARS.test(url)) return false;
+
+    if (url.startsWith('/')) {
+      return isSafeRelativePath(url);
+    }
+    if (url.startsWith(`${ALLOWED_ORIGIN}/`) || url === ALLOWED_ORIGIN) {
+      return isAllowedAbsoluteUrl(url);
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * @param {string} path - String already known to start with "/".
+ * @returns {boolean}
+ */
+function isSafeRelativePath(path) {
+  // "//host" is protocol-relative and would leave the site.
+  if (path.startsWith('//')) return false;
+
+  // Defense in depth: resolve against our origin and confirm we stay on it.
+  return new URL(path, ALLOWED_ORIGIN).origin === ALLOWED_ORIGIN;
+}
+
+/**
+ * @param {string} href - Absolute URL string.
+ * @returns {boolean}
+ */
+function isAllowedAbsoluteUrl(href) {
+  const parsed = new URL(href);
+  return (
+    parsed.protocol === 'https:' &&
+    parsed.origin === ALLOWED_ORIGIN &&
+    parsed.username === '' &&
+    parsed.password === ''
+  );
+}
+
+module.exports = { isSafeRedirect };
+```

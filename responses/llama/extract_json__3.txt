@@ -1,0 +1,97 @@
+```js
+/**
+ * Extracts the first valid JSON object from arbitrary text.
+ *
+ * LLMs often wrap JSON in prose or markdown fences like ```json ...```.
+ * This scans left-to-right for a balanced `{ ... }` block (brace-aware
+ * inside double-quoted strings) and returns the first substring that
+ * parses with `JSON.parse` into a non-null, non-array object.
+ *
+ * The scan is string-aware:
+ * - braces inside `"..."` are ignored
+ * - escaped quotes `\"` and escaped backslashes `\\` are handled
+ *
+ * @param {string} text - Model response or any free-form text that may contain JSON
+ * @returns {object|null} The first valid JSON object found, or null if none exists
+ *
+ * @example
+ * extractJson('Here is the result:\n```json\n{"a": 1, "b": {"c": 2}}\n```')
+ * // => { a: 1, b: { c: 2 } }
+ *
+ * extractJson('no json here') // => null
+ *
+ * @remarks
+ * - Never throws - returns null on invalid input, parse errors, or unexpected exceptions
+ * - Returns only plain objects (`{}`), not arrays or primitives
+ * - Designed to be safe to call on every model response in an agent loop
+ */
+function extractJson(text) {
+  if (typeof text !== 'string') {
+    return null;
+  }
+
+  try {
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] !== '{') {
+        continue;
+      }
+
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+
+      for (let j = i; j < text.length; j++) {
+        const ch = text[j];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        if (ch === '\\' && inString) {
+          escaped = true;
+          continue;
+        }
+
+        if (ch === '"') {
+          inString = !inString;
+          continue;
+        }
+
+        if (inString) {
+          continue;
+        }
+
+        if (ch === '{') {
+          depth++;
+        } else if (ch === '}') {
+          depth--;
+
+          if (depth === 0) {
+            const candidate = text.slice(i, j + 1);
+            try {
+              const parsed = JSON.parse(candidate);
+              if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed;
+              }
+            } catch {
+              // Not valid JSON - try next opening brace
+            }
+            break; // balanced block for this i was tested, move to next i
+          }
+
+          if (depth < 0) {
+            break;
+          }
+        }
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+module.exports = { extractJson };
+```

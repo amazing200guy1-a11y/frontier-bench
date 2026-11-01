@@ -1,0 +1,34 @@
+```js
+const ALLOWED_ORIGIN = 'https://app.example.com';
+
+/**
+ * Checks whether a redirect URL is safe.
+ *
+ * Allows same-site relative paths and absolute HTTPS URLs
+ * whose origin is exactly https://app.example.com.
+ *
+ * @param {unknown} url - The redirect URL to validate.
+ * @returns {boolean} True if the URL is safe; otherwise false.
+ */
+function isSafeRedirect(url) {
+  if (typeof url !== 'string' || url.length === 0) {
+    return false;
+  }
+
+  // Allow root-relative paths, but reject protocol-relative URLs.
+  if (url.startsWith('/') && !url.startsWith('//')) {
+    return true;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+
+    return parsedUrl.origin === ALLOWED_ORIGIN &&
+      parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { isSafeRedirect };
+```

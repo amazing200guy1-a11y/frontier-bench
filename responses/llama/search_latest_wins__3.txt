@@ -1,0 +1,59 @@
+```js
+/**
+ * @callback FetchResults
+ * @param {string} query - The current search text.
+ * @returns {Promise<any>} Resolves with results for the query.
+ */
+
+/**
+ * @callback Render
+ * @param {any} results - Results from fetchResults.
+ * @param {string} query - Query those results belong to.
+ * @returns {void}
+ */
+
+/**
+ * @callback OnError
+ * @param {Error} err - Error thrown by fetchResults.
+ * @param {string} query - Query that failed.
+ * @returns {void}
+ */
+
+/**
+ * Creates a race-safe search handler for typeahead and refresh.
+ *
+ * Problem fixed:
+ * 1. Outdated results - the old `latest === query` string check treats two
+ *    concurrent calls with the same query (Refresh button) as equally fresh,
+ *    so an older request can overwrite a newer one. Using a monotonic request
+ *    id ensures only the latest invocation wins.
+ * 2. Spurious error toasts - errors were not gated at all, so a failure for
+ *    a stale query could toast after the user has typed further. Errors are
+ *    now gated by the same request id.
+ *
+ * @param {FetchResults} fetchResults - Async fetcher.
+ * @param {Render} render - Renders fresh results only.
+ * @param {OnError} onError - Shows error toast for fresh query only.
+ * @returns {(query: string) => Promise<void>} Async `search(query)` function.
+ */
+function createSearch(fetchResults, render, onError) {
+  let latestRequestId = 0;
+
+  return async function search(query) {
+    const requestId = ++latestRequestId;
+
+    try {
+      const results = await fetchResults(query);
+      if (requestId === latestRequestId) {
+        render(results, query);
+      }
+    } catch (err) {
+      if (requestId === latestRequestId) {
+        onError(err, query);
+      }
+    }
+  };
+}
+
+module.exports = { createSearch };
+```

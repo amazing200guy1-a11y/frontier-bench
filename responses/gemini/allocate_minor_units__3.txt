@@ -1,0 +1,43 @@
+```js
+/**
+ * Splits an amount in minor currency units proportionally to non-negative integer weights.
+ * 
+ * @param {number} totalMinor - The total amount in minor units (e.g., kobo/cents) to split.
+ * @param {number[]} weights - An array of non-negative integer weights.
+ * @returns {number[]} An array of integers summing exactly to totalMinor.
+ * @throws {RangeError} If the weights sum to zero or less.
+ */
+function allocate(totalMinor, weights) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (sum <= 0) {
+    throw new RangeError('weights must sum to a positive number');
+  }
+
+  const items = weights.map((w, index) => {
+    const base = Math.floor((totalMinor * w) / sum);
+    const remainder = (totalMinor * w) % sum;
+    return { index, base, remainder };
+  });
+
+  const baseSum = items.reduce((acc, item) => acc + item.base, 0);
+  const leftover = totalMinor - baseSum;
+
+  // Sort by remainder descending, breaking ties by earlier index ascending
+  items.sort((a, b) => {
+    if (b.remainder !== a.remainder) {
+      return b.remainder - a.remainder;
+    }
+    return a.index - b.index;
+  });
+
+  const result = new Array(weights.length);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    result[item.index] = item.base + (i < leftover ? 1 : 0);
+  }
+
+  return result;
+}
+
+module.exports = { allocate };
+```

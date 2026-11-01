@@ -1,0 +1,72 @@
+```js
+/**
+ * Returns the next monthly billing dates after the subscription anchor.
+ *
+ * Each renewal uses the original anchor day, clamped to the last day
+ * of the target month when that day does not exist (e.g. January 31
+ * becomes February 28 or 29, then March 31).
+ *
+ * @param {string} anchorIso - Subscription date in YYYY-MM-DD format (UTC).
+ * @param {number} count - Number of renewal dates to generate.
+ * @returns {string[]} Renewal dates in YYYY-MM-DD format (UTC).
+ * @throws {TypeError} If the arguments have invalid types.
+ * @throws {RangeError} If the date or count is invalid.
+ */
+function nextBillingDates(anchorIso, count) {
+  if (typeof anchorIso !== 'string') {
+    throw new TypeError('anchorIso must be a string');
+  }
+
+  if (!Number.isInteger(count) || count < 0) {
+    throw new RangeError('count must be a non-negative integer');
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(anchorIso);
+
+  if (!match) {
+    throw new RangeError('anchorIso must be a valid YYYY-MM-DD date');
+  }
+
+  const [, year, month, day] = match;
+  const anchorYear = Number(year);
+  const anchorMonth = Number(month) - 1;
+  const anchorDay = Number(day);
+
+  const anchor = new Date(0);
+  anchor.setUTCFullYear(anchorYear, anchorMonth, anchorDay);
+  anchor.setUTCHours(0, 0, 0, 0);
+
+  if (
+    anchor.getUTCFullYear() !== anchorYear ||
+    anchor.getUTCMonth() !== anchorMonth ||
+    anchor.getUTCDate() !== anchorDay
+  ) {
+    throw new RangeError('anchorIso must be a valid YYYY-MM-DD date');
+  }
+
+  const dates = [];
+
+  for (let i = 1; i <= count; i++) {
+    const targetMonth = anchorMonth + i;
+    const targetYear = anchorYear + Math.floor(targetMonth / 12);
+    const normalizedMonth = targetMonth % 12;
+
+    const lastDay = new Date(0);
+    lastDay.setUTCFullYear(targetYear, normalizedMonth + 1, 0);
+
+    const billingDate = new Date(0);
+    billingDate.setUTCFullYear(
+      targetYear,
+      normalizedMonth,
+      Math.min(anchorDay, lastDay.getUTCDate())
+    );
+    billingDate.setUTCHours(0, 0, 0, 0);
+
+    dates.push(billingDate.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
+
+module.exports = { nextBillingDates };
+```

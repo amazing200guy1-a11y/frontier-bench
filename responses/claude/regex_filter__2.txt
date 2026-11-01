@@ -1,0 +1,115 @@
+'use strict';
+
+/**
+ * @typedef {Object} KeywordFilter
+ * @property {(text: string) => boolean} isFlagged
+ *   Returns `true` if `text` contains any forbidden word as a whole word
+ *   (case-insensitive).
+ * @property {(text: string) => string} redact
+ *   Returns `text` with every whole-word occurrence of a forbidden word
+ *   replaced by asterisks, one per character (code point) of the match.
+ */
+
+/**
+ * Characters that count as "part of a word". Unlike the built-in `\b`, this is
+ * Unicode-aware (so "café" or "Straße" are handled) and does not depend on the
+ * forbidden word itself starting/ending with a word character (so "c++" works).
+ */
+const WORD_CHAR = '[\\p{L}\\p{M}\\p{N}_]';
+
+/**
+ * Escapes every RegExp syntax character so `s` matches literally.
+ * Valid under the `u` flag (only escapes syntax characters).
+ *
+ * @param {string} s
+ * @returns {string}
+ */
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Builds the RegExp source for a list of forbidden words, or `null` if the
+ * list contains no usable entries.
+ *
+ * @param {string[]} words
+ * @returns {string | null}
+ * @throws {TypeError} If any entry is not a string.
+ */
+function buildPattern(words) {
+  const unique = new Set();
+  for (const word of words) {
+    if (typeof word !== 'string') {
+      throw new TypeError('createFilter: every entry in `words` must be a string');
+    }
+    const trimmed = word.trim();
+    if (trimmed) unique.add(trimmed); // blank entries would match everywhere
+  }
+  if (unique.size === 0) return null;
+
+  // Longest first so overlapping entries resolve deterministically.
+  const alternation = [...unique]
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp)
+    .join('|');
+
+  return `(?<!${WORD_CHAR})(?:${alternation})(?!${WORD_CHAR})`;
+}
+
+/**
+ * @param {unknown} text
+ * @returns {string}
+ * @throws {TypeError}
+ */
+function assertString(text) {
+  if (typeof text !== 'string') {
+    throw new TypeError(`Expected \`text\` to be a string, received ${typeof text}`);
+  }
+  return text;
+}
+
+/**
+ * Creates an in-memory, whole-word, case-insensitive keyword filter.
+ *
+ * The word list is copied and compiled once at creation time, so later
+ * mutation of the input array has no effect. Words are trimmed, blank entries
+ * are ignored, and regex metacharacters are treated literally. Returned
+ * methods are stateless and safe to call repeatedly or concurrently.
+ *
+ * @param {string[]} words Forbidden words.
+ * @returns {KeywordFilter}
+ * @throws {TypeError} If `words` is not an array of strings.
+ *
+ * @example
+ * const filter = createFilter(['bad', 'c++']);
+ * filter.isFlagged('This is BAD');   // true
+ * filter.isFlagged('A badge');       // false
+ * filter.redact('bad, Bad and c++'); // '***, *** and ***'
+ */
+function createFilter(words) {
+  if (!Array.isArray(words)) {
+    throw new TypeError('createFilter: `words` must be an array of strings');
+  }
+
+  const source = buildPattern(words);
+
+  if (source === null) {
+    return Object.freeze({
+      isFlagged: (text) => (assertString(text), false),
+      redact: (text) => assertString(text),
+    });
+  }
+
+  // Two regexes on purpose: a global regex keeps `lastIndex` state between
+  // `.test()` calls and would give alternating results, so the check uses a
+  // non-global one and only `redact` uses the global one.
+  const testRe = new RegExp(source, 'iu');
+  const redactRe = new RegExp(source, 'giu');
+
+  return Object.freeze({
+    isFlagged: (text) => testRe.test(assertString(text)),
+    // Count code points, not UTF-16 units, so emoji/astral chars map 1:1.
+    redact: (text) =>
+      assertString(text).replace(redactRe, (m) => '*'.repeat(Array.from(m).length)),
+  });
+}
+
+module.exports = { createFilter };

@@ -1,0 +1,30 @@
+/**
+ * Creates a search handler that ignores stale results and errors.
+ *
+ * @param {(query: string) => Promise<*>} fetchResults - Fetches results for a query.
+ * @param {(results: *, query: string) => void} render - Renders the latest results.
+ * @param {(error: unknown, query: string) => void} onError - Handles errors from the latest search.
+ * @returns {(query: string) => Promise<void>} An asynchronous search function.
+ */
+function createSearch(fetchResults, render, onError) {
+  /** @type {number} */
+  let latestRequestId = 0;
+
+  return async function search(query) {
+    const requestId = ++latestRequestId;
+
+    try {
+      const results = await fetchResults(query);
+
+      if (requestId !== latestRequestId) return;
+
+      render(results, query);
+    } catch (error) {
+      if (requestId !== latestRequestId) return;
+
+      onError(error, query);
+    }
+  };
+}
+
+module.exports = { createSearch };

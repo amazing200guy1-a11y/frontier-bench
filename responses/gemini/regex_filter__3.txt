@@ -1,0 +1,64 @@
+/**
+ * Escapes special regex characters in a string.
+ * @param {string} s - The string to escape.
+ * @returns {string} The escaped string.
+ */
+const esc = (s) => s.replace(/[.*+?^${}()|[$\\]/g, '\\$&');
+
+/**
+ * Creates an in-memory keyword filter for flagging and redacting forbidden words.
+ * 
+ * @param {string[]} words - An array of forbidden words.
+ * @returns {{ isFlagged: (text: string) => boolean, redact: (text: string) => string }} The filter object.
+ */
+function createFilter(words) {
+  // Handle edge cases where words is empty or not a valid array
+  if (!Array.isArray(words) || words.length === 0) {
+    return {
+      isFlagged: (text) => false,
+      redact: (text) => (typeof text === 'string' ? text : ''),
+    };
+  }
+
+  // Filter out invalid/empty entries to prevent malformed regex
+  const validWords = words.filter((w) => typeof w === 'string' && w.length > 0);
+  
+  if (validWords.length === 0) {
+    return {
+      isFlagged: (text) => false,
+      redact: (text) => (typeof text === 'string' ? text : ''),
+    };
+  }
+
+  const pattern = `\\b(?:${validWords.map(esc).join('|')})\\b`;
+  
+  // Separate regex instances: 
+  // - testRegex without 'g' avoids the lastIndex state bug on multiple .test() calls.
+  // - redactRegex with 'gi' is required for replacing all occurrences globally.
+  const testRegex = new RegExp(pattern, 'i');
+  const redactRegex = new RegExp(pattern, 'gi');
+
+  return {
+    /**
+     * Checks if the text contains any forbidden whole words (case-insensitive).
+     * @param {string} text - The input text to check.
+     * @returns {boolean} True if a forbidden word is found, otherwise false.
+     */
+    isFlagged: (text) => {
+      if (typeof text !== 'string') return false;
+      return testRegex.test(text);
+    },
+
+    /**
+     * Replaces every forbidden whole word with asterisks of matching length.
+     * @param {string} text - The input text to redact.
+     * @returns {string} The redacted text.
+     */
+    redact: (text) => {
+      if (typeof text !== 'string') return '';
+      return text.replace(redactRegex, (match) => '*'.repeat(match.length));
+    },
+  };
+}
+
+module.exports = { createFilter };

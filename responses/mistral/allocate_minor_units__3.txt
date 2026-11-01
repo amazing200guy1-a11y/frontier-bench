@@ -1,0 +1,56 @@
+```js
+/**
+ * Splits an amount of money (expressed in minor units, e.g. kobo) across
+ * recipients proportionally to non-negative integer weights, for revenue
+ * sharing.
+ *
+ * The returned allocations are integers and sum exactly to `totalMinor` —
+ * no money is created or lost. Each recipient first receives the floor of
+ * their exact proportional share; the remaining kobo are then distributed
+ * one at a time to the recipients with the largest fractional entitlement
+ * (largest remainder method), so rounding is fair across all partners
+ * rather than biased toward any recipient. Ties in fractional entitlement
+ * are resolved in favor of earlier indices.
+ *
+ * @param {number} totalMinor - Total amount to split, in minor units
+ *   (e.g. kobo). Must be an integer; may be zero or negative for
+ *   refunds/adjustments, in which case the same proportional rules apply.
+ * @param {number[]} weights - Non-negative integer weights, one per
+ *   recipient. A weight of zero entitles that recipient to nothing.
+ * @returns {number[]} Integer allocations, one per weight, summing exactly
+ *   to `totalMinor`.
+ * @throws {RangeError} If the weights sum to zero (including an empty
+ *   weights array), since no proportional split is defined.
+ */
+function allocate(totalMinor, weights) {
+  const sum = weights.reduce((acc, w) => acc + w, 0);
+  if (sum <= 0) {
+    throw new RangeError('weights must sum to a positive number');
+  }
+
+  // Exact (possibly fractional) proportional share for each recipient.
+  const exact = weights.map((w) => (totalMinor * w) / sum);
+
+  // Start everyone at the floor of their exact share; this can only
+  // under-allocate, never over-allocate.
+  const allocations = exact.map((share) => Math.floor(share));
+
+  // Kobo left over after flooring.
+  let remainder = totalMinor - allocations.reduce((acc, a) => acc + a, 0);
+
+  // Rank recipients by fractional entitlement (largest first), breaking
+  // ties in favor of earlier indices.
+  const byFraction = exact
+    .map((share, i) => ({ i, frac: share - Math.floor(share) }))
+    .sort((a, b) => b.frac - a.frac || a.i - b.i);
+
+  // Distribute the leftover kobo to the most entitled recipients.
+  for (let k = 0; k < remainder; k++) {
+    allocations[byFraction[k].i] += 1;
+  }
+
+  return allocations;
+}
+
+module.exports = { allocate };
+```

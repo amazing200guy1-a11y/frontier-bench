@@ -1,0 +1,88 @@
+```js
+'use strict';
+
+/**
+ * Validate a post-login redirect target (the `next` query parameter) before
+ * its value is written into a Location header.
+ *
+ * A target is safe only if it is one of:
+ *
+ *   1. A root-relative path: starts with a single "/" and is not
+ *      protocol-relative ("//host/...") and not backslash-prefixed
+ *      ("/\host/..."). Browsers treat a leading "//" as scheme-relative
+ *      and a leading "/\" as "//" after backslash normalization, so both
+ *      resolve to a foreign origin and must be rejected.
+ *   2. An absolute URL whose scheme is exactly "https:" (any case) and
+ *      whose host is exactly "app.example.com", with the default port only
+ *      (no port, or ":443") and no embedded credentials
+ *      ("user:pass@..." / "user@...").
+ *
+ * Everything else is rejected, including:
+ *   - "//evil.com", "/\evil.com", "/\/evil.com", "///evil.com"
+ *   - "https://app.example.com.evil.com" (prefix trick)
+ *   - "https://evil.com\@app.example.com" and "https://app.example.com@evil.com"
+ *   - "http://app.example.com" (only https is allowed on the app host)
+ *   - "https://app.example.com:8443" (non-default port)
+ *   - "https://app.example.com:443"
+ *   - "https://app.example.com./" (trailing-dot host is a distinct origin)
+ *   - "javascript:", "data:", "mailto:", etc.
+ *   - Plain relative values such as "dashboard", "?next=/", "#x", ""
+ *   - Values containing C0 control characters or DEL (header-injection risk)
+ *
+ * Robustness notes:
+ * - Values are parsed with the WHATWG URL algorithm — the same algorithm
+ *   browsers use to resolve Location headers — so the decision matches how
+ *   the browser will actually interpret the value, including tab/newline
+ *   stripping and backslash normalization.
+ * - Even root-relative paths are re-verified after URL resolution, so no
+ *   parser edge case can smuggle in a foreign origin (defense in depth).
+ * - The function fails closed: any parse error or unexpected input yields
+ *   false. It never throws and never returns a non-boolean.
+ *
+ * Requires a global WHATWG URL (Node >= 10, all modern browsers).
+ *
+ * @param {unknown} url - Candidate redirect target (typically req.query.next).
+ * @returns {boolean} true if the target is safe to place in a Location
+ *   header; false otherwise. Never throws for any input.
+ */
+function isSafeRedirect(url) {
+  // Reject non-strings and empty values up front (never throw).
+  if (typeof url !== 'string' || url.length === 0) return false;
+
+  // Reject control characters (C0 + DEL): raw \r\n/\n would allow header
+  // injection, and other controls confuse naive string checks.
+  if (/[\x00-\x1F\x7F]/.test(url)) return false;
+
+  let parsed;
+  try {
+    if (url.startsWith('/')) {
+      // Root-relative path. Reject "//host" (protocol-relative) and "/\host"
+      // (backslash form): both resolve to a foreign origin.
+      if (url.charAt(1) === '/' || url.charAt(1) === '\\') return false;
+
+      // Resolve against the app origin, then verify the result below so a
+      // parser quirk can never escape to another host.
+      parsed = new URL(url, 'https://app.example.com/');
+    } else {
+      // Must be a well-formed absolute URL on its own terms; this throws for
+      // scheme-less values like "dashboard", "foo/bar", "?next=/".
+      parsed = new URL(url);
+    }
+  } catch {
+    // Malformed URL (or URL parser unavailable): fail closed.
+    return false;
+  }
+
+  // Unified origin check. `port` is "" when omitted or the scheme default
+  // (:443), so this rejects any explicit non-default port.
+  return (
+    parsed.protocol === 'https:' &&
+    parsed.hostname === 'app.example.com' &&
+    parsed.port === '' &&
+    parsed.username === '' &&
+    parsed.password === ''
+  );
+}
+
+module.exports = { isSafeRedirect };
+```

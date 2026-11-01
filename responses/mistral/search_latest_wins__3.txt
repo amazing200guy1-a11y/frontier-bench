@@ -1,0 +1,79 @@
+```js
+/**
+ * Fetches results for a search query (e.g. a backend API call).
+ *
+ * @callback FetchResults
+ * @param {string} query - The search query typed by the user.
+ * @returns {Promise<*>} Resolves with the results for `query`.
+ */
+
+/**
+ * Renders a successful search's results in the UI.
+ *
+ * @callback Render
+ * @param {*} results - The results resolved by {@link FetchResults}.
+ * @param {string} query - The query these results belong to.
+ * @returns {void}
+ */
+
+/**
+ * Reports a failed search (e.g. by showing an error toast).
+ * Only called when the failed search is still the most recent one.
+ *
+ * @callback OnError
+ * @param {*} error - The error thrown while fetching.
+ * @param {string} query - The query whose search failed.
+ * @returns {void}
+ */
+
+/**
+ * Runs a search for `query`.
+ *
+ * Always resolves (never rejects). If a newer search starts before this
+ * one settles, this call resolves without rendering or reporting errors,
+ * so callers never see outdated results or spurious error toasts.
+ *
+ * @callback Search
+ * @param {string} query - The search query typed by the user.
+ * @returns {Promise<void>} Resolves once this search has settled or was superseded.
+ */
+
+/**
+ * Creates a stale-safe search function for a search-as-you-type box.
+ *
+ * Safe to call on every keystroke and from a Refresh button that re-runs
+ * the current query. Each call supersedes all in-flight calls: only the
+ * most recent search may render results or report errors, even when two
+ * in-flight searches share the same query string (e.g. a keystroke
+ * followed by a Refresh of that same query).
+ *
+ * @param {FetchResults} fetchResults - Async function that fetches results for a query.
+ * @param {Render} render - Invoked with the results of the latest search only.
+ * @param {OnError} onError - Invoked with the error of the latest search only.
+ * @returns {Search} An async search function.
+ */
+function createSearch(fetchResults, render, onError) {
+  // Monotonic token identifying the most recent search. A token (rather
+  // than the query string) is required because a Refresh re-runs the same
+  // query and must still supersede the earlier in-flight request.
+  let latestToken = 0;
+
+  return async function search(query) {
+    const token = ++latestToken;
+
+    let results;
+    try {
+      results = await fetchResults(query);
+    } catch (error) {
+      // A superseded search failing is expected; don't surface a stale toast.
+      if (token === latestToken) onError(error, query);
+      return;
+    }
+
+    // Discard results from any search that is no longer the latest.
+    if (token === latestToken) render(results, query);
+  };
+}
+
+module.exports = { createSearch };
+```

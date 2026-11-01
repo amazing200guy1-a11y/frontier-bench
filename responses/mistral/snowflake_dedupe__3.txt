@@ -1,0 +1,88 @@
+```js
+'use strict';
+
+/**
+ * A single record coming from the API.
+ *
+ * `id` is a 64-bit Snowflake id. Literals that fit exactly in a JS number
+ * (|id| <= Number.MAX_SAFE_INTEGER) stay numbers; larger literals are
+ * preserved as exact decimal strings so no two distinct ids can collide.
+ *
+ * @typedef {Record<string, unknown>} Row
+ */
+
+/** 2**53 - 1, the largest integer exactly representable as a JS number. */
+const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER);
+
+/**
+ * Tokenizes a JSON document into its string and number literals.
+ *
+ * The string alternative is listed first, so digits appearing inside
+ * string values are always consumed as part of the string and can never
+ * be mistaken for number literals.
+ *
+ * @type {RegExp}
+ */
+const LITERAL_RE = /"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
+
+/**
+ * Reports whether a JSON number literal is an integer too large to be
+ * represented exactly as a JS number (i.e. a 64-bit Snowflake id).
+ *
+ * @param {string} token - A raw JSON number literal.
+ * @returns {boolean} `true` when `JSON.parse` would silently round it.
+ */
+const isUnsafeIntegerLiteral = (token) => {
+  if (!/^-?\d+$/.test(token)) return false;
+  const digits = token.startsWith('-') ? token.slice(1) : token;
+  if (digits.length < 16) return false; // < 10^15 < 2^53, always exact
+  const value = BigInt(token);
+  return value > MAX_SAFE || value < -MAX_SAFE;
+};
+
+/**
+ * Quotes integer literals that exceed Number.MAX_SAFE_INTEGER so the
+ * exact 64-bit value survives `JSON.parse` as a decimal string instead
+ * of being silently rounded to a colliding double.
+ *
+ * @param {string} json - Raw JSON text.
+ * @returns {string} Equivalent JSON with unsafe integer literals quoted.
+ */
+const preserveExactIntegers = (json) =>
+  json.replace(LITERAL_RE, (literal) =>
+    isUnsafeIntegerLiteral(literal) ? `"${literal}"` : literal
+  );
+
+/**
+ * Builds an exact, collision-free dedupe key for a parsed row id.
+ *
+ * @param {unknown} id - The parsed `row.id` value.
+ * @returns {number | string} A value usable as a Set key.
+ */
+const dedupeKey = (id) => (typeof id === 'number' ? id : String(id));
+
+/**
+ * Returns the first row seen for each distinct 64-bit Snowflake id.
+ *
+ * Rows are processed in document order, so for every id the earliest
+ * occurrence in the payload wins. Ids are compared exactly: literals
+ * above Number.MAX_SAFE_INTEGER are preserved as decimal strings before
+ * parsing, so distinct ids can never collide through double rounding.
+ *
+ * @param {string} json - JSON text containing an array of records.
+ * @returns {Row[]} The deduplicated rows, in first-seen order.
+ */
+const dedupeById = (json) => {
+  const seen = new Set();
+  return /** @type {Row[]} */ (
+    JSON.parse(preserveExactIntegers(json)).filter((row) => {
+      const key = dedupeKey(row?.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+  );
+};
+
+module.exports = { dedupeById };
+```
